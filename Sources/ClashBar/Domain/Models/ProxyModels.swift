@@ -1,0 +1,120 @@
+import Foundation
+
+struct ProxyGroupsResponse: Decodable, Equatable {
+    let proxies: [String: ProxyGroup]
+}
+
+struct ProxyGroup: Decodable, Equatable {
+    let name: String
+    let type: String?
+    let now: String?
+    let all: [String]
+    let hidden: Bool?
+    let latestDelay: Int?
+
+    init(
+        name: String,
+        type: String? = nil,
+        now: String? = nil,
+        all: [String],
+        hidden: Bool? = nil,
+        latestDelay: Int? = nil
+    ) {
+        self.name = name
+        self.type = type
+        self.now = now
+        self.all = all
+        self.hidden = hidden
+        self.latestDelay = latestDelay
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case type
+        case now
+        case all
+        case hidden
+        case history
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decodeIfPresent(String.self, forKey: .name) ?? "Unknown"
+        type = try container.decodeIfPresent(String.self, forKey: .type)
+        now = try container.decodeIfPresent(String.self, forKey: .now)
+        all = try container.decodeIfPresent([String].self, forKey: .all) ?? []
+        hidden = try container.decodeIfPresent(Bool.self, forKey: .hidden)
+        latestDelay = Self.decodeLatestDelay(from: container)
+    }
+
+    private static func decodeLatestDelay(from container: KeyedDecodingContainer<CodingKeys>) -> Int? {
+        guard var historyContainer = try? container.nestedUnkeyedContainer(forKey: .history) else {
+            return nil
+        }
+
+        var latest: Int?
+        while !historyContainer.isAtEnd {
+            guard let entry = try? historyContainer.decode(ProxyDelayHistoryEntry.self) else {
+                break
+            }
+            if let delay = entry.delay {
+                latest = delay
+            }
+        }
+        return latest
+    }
+}
+
+private struct ProxyDelayHistoryEntry: Decodable, Equatable {
+    let delay: Int?
+
+    private enum CodingKeys: String, CodingKey {
+        case delay
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let value = try container.decodeIfPresent(Int.self, forKey: .delay) {
+            delay = value
+            return
+        }
+        if let value = try container.decodeIfPresent(Int64.self, forKey: .delay) {
+            delay = Int(value)
+            return
+        }
+        if let value = try container.decodeIfPresent(String.self, forKey: .delay),
+           let intValue = Int(value) {
+            delay = intValue
+            return
+        }
+        delay = nil
+    }
+}
+
+struct ConfigSnapshot: Codable, Equatable {
+    let allowLan: Bool?
+    let mode: String?
+    let logLevel: String?
+    let ipv6: Bool?
+    let unifiedDelay: Bool?
+    let port: Int?
+    let socksPort: Int?
+    let redirPort: Int?
+    let tproxyPort: Int?
+    let mixedPort: Int?
+    let externalController: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case allowLan = "allow-lan"
+        case mode
+        case logLevel = "log-level"
+        case ipv6
+        case unifiedDelay = "unified-delay"
+        case port
+        case socksPort = "socks-port"
+        case redirPort = "redir-port"
+        case tproxyPort = "tproxy-port"
+        case mixedPort = "mixed-port"
+        case externalController = "external-controller"
+    }
+}

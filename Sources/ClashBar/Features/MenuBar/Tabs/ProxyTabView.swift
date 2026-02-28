@@ -1,0 +1,230 @@
+import AppKit
+import SwiftUI
+
+extension MenuBarRoot {
+    var proxyModuleSpacing: CGFloat { MenuBarLayoutTokens.sectionGap }
+
+    var proxyTabBody: some View {
+        VStack(alignment: .leading, spacing: proxyModuleSpacing) {
+            trafficOverview
+            proxyQuickRows
+            proxyProvidersSection
+            proxyGroupsSection
+        }
+    }
+
+    var trafficOverview: some View {
+        let sparklineHeight: CGFloat = 64
+        let sparklineHorizontalInset: CGFloat = 2
+
+        return ZStack {
+            TrafficSparklineView(
+                upValues: appState.trafficHistoryUp,
+                downValues: appState.trafficHistoryDown
+            )
+                .frame(height: sparklineHeight)
+                .padding(.horizontal, sparklineHorizontalInset)
+
+            VStack(spacing: 0) {
+                HStack(spacing: MenuBarLayoutTokens.hDense) {
+                    cornerIconMetric(
+                        symbol: "link",
+                        value: "\(appState.connectionsCount)",
+                        color: nativeIndigo
+                    )
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    cornerTrafficMetric(
+                        symbol: "arrow.up.circle",
+                        color: nativeInfo,
+                        value: ValueFormatter.speedAndTotal(
+                            rate: appState.traffic.up,
+                            total: appState.displayUpTotal
+                        )
+                    )
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+
+                Spacer(minLength: 0)
+
+                HStack(spacing: MenuBarLayoutTokens.hDense) {
+                    cornerIconMetric(
+                        symbol: "memorychip",
+                        value: ValueFormatter.bytesInteger(appState.memory.inuse),
+                        color: nativeTeal
+                    )
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    cornerTrafficMetric(
+                        symbol: "arrow.down.circle",
+                        color: nativePositive.opacity(0.92),
+                        value: ValueFormatter.speedAndTotal(
+                            rate: appState.traffic.down,
+                            total: appState.displayDownTotal
+                        )
+                    )
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+            }
+            .padding(.horizontal, MenuBarLayoutTokens.hDense)
+            .padding(.vertical, MenuBarLayoutTokens.vDense)
+        }
+        .frame(height: sparklineHeight)
+        .padding(.top, MenuBarLayoutTokens.vDense)
+        .background(nativeSectionCard(cornerRadius: 6))
+    }
+
+    func cornerIconMetric(
+        symbol: String,
+        value: String,
+        color: Color
+    ) -> some View {
+        HStack(spacing: MenuBarLayoutTokens.hMicro + 1) {
+            Image(systemName: symbol)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(color)
+            Text(value)
+                .font(.system(size: 12, weight: .regular, design: .monospaced))
+                .foregroundStyle(nativeSecondaryLabel)
+                .lineLimit(1)
+                .minimumScaleFactor(0.80)
+        }
+    }
+
+    func cornerTrafficMetric(
+        symbol: String,
+        color: Color,
+        value: String
+    ) -> some View {
+        HStack(spacing: MenuBarLayoutTokens.hMicro) {
+            Text(value)
+                .font(.system(size: 12, weight: .regular, design: .monospaced))
+                .foregroundStyle(nativeSecondaryLabel)
+                .lineLimit(1)
+                .minimumScaleFactor(0.80)
+            Image(systemName: symbol)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(color)
+        }
+    }
+
+    var proxyQuickRows: some View {
+        VStack(spacing: 0) {
+            AttachedPopoverMenu {
+                HStack(spacing: MenuBarLayoutTokens.hDense) {
+                    quickIcon(symbol: "doc.text", foreground: nativePurple, background: nativePurple.opacity(0.14))
+                    Text(tr("ui.quick.switch_config"))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(nativePrimaryLabel)
+                    Spacer(minLength: 0)
+                    Text(appState.selectedConfigName)
+                        .font(.system(size: 12, weight: .regular))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .foregroundStyle(nativeSecondaryLabel)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(nativeTertiaryLabel)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .menuRowPadding()
+            } content: { dismiss in
+                ForEach(appState.availableConfigFileNames, id: \.self) { name in
+                    AttachedPopoverMenuItem(
+                        title: name,
+                        selected: name == appState.selectedConfigName
+                    ) {
+                        dismiss()
+                        Task { await appState.selectConfigFile(named: name) }
+                    }
+                }
+                AttachedPopoverMenuDivider()
+                AttachedPopoverMenuItem(title: tr("ui.quick.reload_config_list")) {
+                    dismiss()
+                    appState.reloadConfigFileList()
+                }
+                AttachedPopoverMenuItem(title: tr("ui.quick.import_local_config")) {
+                    dismiss()
+                    appState.importLocalConfigFile()
+                }
+                AttachedPopoverMenuItem(title: tr("ui.quick.import_remote_config")) {
+                    dismiss()
+                    Task { await appState.importRemoteConfigFile() }
+                }
+                AttachedPopoverMenuItem(title: tr("ui.quick.update_remote_configs")) {
+                    dismiss()
+                    Task { await appState.updateAllRemoteConfigFiles() }
+                }
+                AttachedPopoverMenuItem(title: tr("ui.quick.show_in_finder")) {
+                    dismiss()
+                    appState.showSelectedConfigInFinder()
+                }
+            }
+            .buttonStyle(.plain)
+
+            quickRowsDivider
+
+            HStack(spacing: MenuBarLayoutTokens.hDense) {
+                quickIcon(symbol: "network", foreground: nativeInfo, background: nativeInfo.opacity(0.14))
+                Text(tr("ui.quick.system_proxy"))
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(nativePrimaryLabel)
+                Spacer(minLength: 0)
+                Toggle(
+                    "",
+                    isOn: Binding(
+                        get: { appState.isSystemProxyEnabled },
+                        set: { value in
+                            Task { await appState.toggleSystemProxy(value) }
+                        }
+                    )
+                )
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .disabled(appState.isProxySyncing)
+            }
+            .menuRowPadding()
+
+            quickRowsDivider
+
+            Button {
+                appState.copyProxyCommand()
+            } label: {
+                HStack(spacing: MenuBarLayoutTokens.hDense) {
+                    quickIcon(symbol: "terminal", foreground: nativeWarning, background: nativeWarning.opacity(0.14))
+                    Text(tr("ui.quick.copy_terminal"))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(nativePrimaryLabel)
+                    Spacer(minLength: 0)
+                    Image(systemName: "doc.on.doc")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(hoveringCopyRow ? nativeSecondaryLabel : nativeTertiaryLabel.opacity(0.6))
+                }
+                .menuRowPadding()
+            }
+            .buttonStyle(.plain)
+            .onHover { hoveringCopyRow = $0 }
+        }
+        .background(nativeSectionCard(cornerRadius: 6))
+    }
+
+    var quickRowsDivider: some View {
+        Rectangle()
+            .fill(nativeSeparator)
+            .frame(height: MenuBarLayoutTokens.hairline)
+            .padding(.horizontal, MenuBarLayoutTokens.hRow)
+    }
+
+    func quickIcon(symbol: String, foreground: Color, background: Color) -> some View {
+        RoundedRectangle(cornerRadius: 5, style: .continuous)
+            .fill(background)
+            .frame(width: 20, height: 20)
+            .overlay {
+                Image(systemName: symbol)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(foreground)
+            }
+    }
+
+}

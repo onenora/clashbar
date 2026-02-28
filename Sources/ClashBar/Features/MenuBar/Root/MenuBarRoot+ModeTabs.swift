@@ -1,0 +1,111 @@
+import AppKit
+import SwiftUI
+
+extension MenuBarRoot {
+    var modeAndTabSection: some View {
+        VStack(spacing: MenuBarLayoutTokens.sectionGap) {
+            modeSwitcher
+            topTabs
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(nativeSeparator).frame(height: MenuBarLayoutTokens.hairline)
+        }
+    }
+
+    var modeSwitcher: some View {
+        HStack(spacing: 0) {
+            modeSegmentButton(
+                title: tr("ui.mode.rule"),
+                mode: .rule,
+                symbol: "line.3.horizontal.decrease.circle"
+            )
+            modeSegmentButton(
+                title: tr("ui.mode.global"),
+                mode: .global,
+                symbol: "globe"
+            )
+            modeSegmentButton(
+                title: tr("ui.mode.direct"),
+                mode: .direct,
+                symbol: "paperplane"
+            )
+        }
+        .frame(width: contentWidth)
+        .padding(2)
+        .background(nativeControlFill, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .stroke(nativeControlBorder, lineWidth: 0.7)
+        }
+    }
+
+    func modeSegmentButton(title: String, mode: CoreMode, symbol: String) -> some View {
+        let selected = appState.currentMode == mode
+        let switchingThisMode = switchingMode == mode
+        let hovered = hoveredMode == mode
+
+        return Button {
+            if !appState.isModeSwitchEnabled || switchingMode != nil || mode == appState.currentMode { return }
+
+            switchingMode = mode
+            Task { @MainActor in
+                await appState.switchMode(to: mode)
+                switchingMode = nil
+            }
+        } label: {
+            VStack(spacing: 2) {
+                if switchingThisMode {
+                    ProgressView()
+                        .controlSize(.mini)
+                } else {
+                    Image(systemName: symbol)
+                        .font(.system(size: 11, weight: .semibold))
+                }
+
+                Text(title)
+                    .font(.system(size: 10, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle((selected || hovered) ? nativePrimaryLabel : nativeSecondaryLabel)
+            .frame(maxWidth: .infinity)
+            .frame(height: 34)
+            .background(
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    .fill(
+                        selected
+                            ? nativeAccent.opacity(0.16)
+                            : (hovered ? Color(nsColor: .selectedContentBackgroundColor).opacity(0.20) : .clear)
+                    )
+            )
+            .overlay {
+                if selected || hovered {
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .stroke(
+                            selected ? nativeAccent.opacity(0.30) : nativeControlBorder.opacity(0.82),
+                            lineWidth: 0.7
+                        )
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovering in
+            hoveredMode = isHovering ? mode : (hoveredMode == mode ? nil : hoveredMode)
+        }
+    }
+
+    var topTabs: some View {
+        EqualWidthSegmentedTabControl(
+            items: RootTab.allCases.map { ($0, tr($0.titleKey)) },
+            selected: currentTab
+        ) { tab in
+            guard currentTab != tab else { return }
+            var transaction = Transaction(animation: nil)
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                currentTab = tab
+            }
+        }
+        .frame(width: contentWidth, height: 24, alignment: .leading)
+    }
+}

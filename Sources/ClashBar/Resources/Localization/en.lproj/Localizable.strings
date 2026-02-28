@@ -1,0 +1,230 @@
+"ui.tab.proxy" = "Nodes";
+"ui.tab.rules" = "Rules";
+"ui.tab.activity" = "Network";
+"ui.tab.logs" = "Logs";
+"ui.tab.system" = "Settings";
+
+"ui.log_filter.all" = "All";
+"ui.log_filter.info" = "Info";
+"ui.log_filter.warning" = "Warning";
+"ui.log_filter.error" = "Error";
+
+"ui.header.status.running" = "Running";
+"ui.header.status.starting" = "Starting";
+"ui.header.status.failed" = "Failed";
+"ui.header.status.stopped" = "Stopped";
+
+"ui.action.stop" = "Stop";
+"ui.action.quit" = "Quit";
+"ui.action.test_latency" = "Test Latency";
+"ui.action.refresh" = "Refresh";
+"ui.action.close_all" = "Close All";
+"ui.action.close_connection" = "Close Connection";
+"ui.action.copy_all_logs" = "Copy All Logs";
+"ui.action.copy_host" = "Copy Host";
+"ui.action.copy_connection_id" = "Copy Connection ID";
+"ui.action.copy_log_message" = "Copy Log Message";
+"ui.action.copy_log_entry" = "Copy Full Log Entry";
+"ui.action.import" = "Import";
+"ui.action.overwrite" = "Overwrite";
+"ui.action.cancel" = "Cancel";
+"ui.action.flush_fakeip_cache" = "Flush FakeIP Cache";
+"ui.action.flush_dns_cache" = "Flush DNS Cache";
+"ui.action.update_geo" = "Update GEO Data";
+"ui.action.upgrade_core" = "Upgrade Core";
+"ui.action.upgrade_ui" = "Upgrade UI";
+"ui.action.upgrade_geo" = "Upgrade GEO Assets";
+"ui.action.restart_core_api" = "Restart Core via API";
+
+"ui.mode.rule" = "Rule";
+"ui.mode.global" = "Global";
+"ui.mode.direct" = "Direct";
+
+
+"ui.quick.switch_config" = "Switch Config";
+"ui.quick.system_proxy" = "System Proxy";
+"ui.quick.copy_terminal" = "Copy Terminal Command";
+"ui.quick.reload_config_list" = "Reload Config List";
+"ui.quick.import_local_config" = "Import Local Config";
+"ui.quick.import_remote_config" = "Import Remote Config";
+"ui.quick.update_remote_configs" = "Update Remote Configs";
+"ui.quick.show_in_finder" = "Show in Finder";
+"ui.quick.remote.url_label" = "Remote URL";
+"ui.quick.remote.url_placeholder" = "https://example.com/config.yaml";
+"ui.quick.remote.filename_label" = "File Name";
+"ui.quick.remote.filename_placeholder" = "Leave empty to infer automatically";
+
+"ui.section.proxy_providers" = "Proxy Providers";
+"ui.section.proxy_groups" = "Proxy Groups";
+"ui.section.basic_settings" = "Basic Settings";
+"ui.section.proxy_ports" = "Proxy Ports";
+"ui.section.maintenance" = "Maintenance";
+
+"ui.rules.column.target_type" = "Target / Type";
+"ui.rules.column.policy" = "Policy";
+"ui.rules.column.stats" = "Stats";
+"ui.rule.stats.rules" = "Rules";
+"ui.rule.stats.sets" = "Sets";
+
+"ui.empty.proxy_providers" = "No proxy providers";
+"ui.empty.proxy_groups" = "No proxy groups loaded";
+"ui.empty.rules" = "No rules data";
+"ui.empty.connections" = "No active connections";
+"ui.empty.logs" = "No logs";
+
+
+"ui.placeholder.filter_connection" = "Filter domain, IP...";
+"ui.placeholder.search_logs" = "Search logs...";
+"ui.placeholder.port" = "0";
+
+"ui.settings.auto_start_core" = "Auto Start Core";
+"ui.settings.launch_at_login" = "Launch ClashBar at Login";
+"ui.settings.menu_bar_style" = "Menu Bar Style";
+"ui.settings.language" = "UI Language";
+"ui.settings.allow_lan" = "Allow LAN";
+"ui.settings.ipv6" = "IPv6";
+"ui.settings.unified_delay" = "Unified Delay";
+"ui.settings.log_level" = "Log Level";
+"ui.settings.port.port" = "HTTP Port";
+"ui.settings.port.socks" = "SOCKS Port";
+"ui.settings.port.mixed" = "Mixed Port";
+"ui.settings.port.redir" = "Redir Port";
+"ui.settings.port.tproxy" = "TProxy Port";
+"ui.settings.save_ports" = "Save Ports";
+"ui.settings.ports_hint" = "Click Save Ports after editing to apply changes to core config";
+"ui.settings.ports_auto_save_hint" = "Port changes are saved to core config automatically";
+"ui.settings.ports_auto_saving" = "Saving...";
+
+"ui.settings.display_mode.icon_and_speed" = "Icon + Speed";
+"ui.settings.display_mode.icon_only" = "Icon Only";
+"ui.settings.display_mode.speed_only" = "Speed Only";
+
+"ui.language.zh_hans" = "简体中文";
+"ui.language.en" = "English";
+
+"ui.footer.core_mihomo" = "MIHOMO %@";
+"ui.footer.version" = "V %@";
+
+"ui.common.na" = "-";
+"ui.common.unknown" = "--";
+"ui.common.timeout" = "Timeout";
+"ui.common.testing" = "Testing...";
+"ui.common.latency_ms" = "%d ms";
+
+"app.runtime.starting" = "Starting";
+"app.runtime.running" = "Running";
+"app.runtime.failed" = "Failed";
+"app.runtime.stopped" = "Stopped";
+"app.primary.processing" = "Processing...";
+"app.primary.restart" = "Restart Core";
+"app.primary.start" = "Start Core";
+
+"app.settings.error.port_range" = "%@ port must be in 0~65535";
+"app.settings.saved.ports" = "Proxy ports saved";
+"app.settings.saved.ports_auto" = "Proxy ports auto-saved";
+"app.settings.saved.single_key" = "%@ saved";
+"app.settings.error.invalid_log_level" = "Invalid log-level value: %@";
+"app.settings.error.overlay_invalid_log_level" = "Settings overlay failed: invalid log-level %@";
+"app.settings.error.overlay_port_range" = "Settings overlay failed: %@ port must be in 0~65535";
+"app.settings.error.save_failed" = "%@ save failed: %@";
+"app.settings.overlay_success" = "Local settings preserved and applied over current config";
+"app.launch_at_login.error.unsupported_environment" = "Launch at login can only be enabled from the packaged .app build";
+"app.launch_at_login.error.requires_approval" = "Allow ClashBar in System Settings > General > Login Items";
+"app.launch_at_login.error.register_failed" = "Failed to enable launch at login: %@";
+"app.launch_at_login.error.unregister_failed" = "Failed to disable launch at login: %@";
+"app.system_proxy.error.invalid_host" = "Invalid proxy host";
+"app.system_proxy.error.invalid_port" = "Invalid proxy port";
+"app.system_proxy.error.helper_not_bundled" = "Privileged helper not found in app bundle. Use the packaged .app/.dmg build";
+"app.system_proxy.error.helper_install_location" = "Move ClashBar.app to /Applications and reopen it before enabling system proxy";
+"app.system_proxy.error.helper_needs_approval" = "Allow ClashBar background item in System Settings > General > Login Items, then try again";
+"app.system_proxy.error.helper_registration_failed" = "Failed to register privileged helper: %@";
+"app.system_proxy.error.helper_connection_failed" = "Failed to connect privileged helper: %@";
+"app.system_proxy.error.helper_operation_failed" = "Privileged helper operation failed: %@";
+"app.config.remote_import.prompt" = "Enter the remote config URL and target file name.";
+"app.config.import.overwrite.title" = "Config already exists: %@";
+"app.config.import.overwrite.message" = "Do you want to overwrite the existing config file?";
+
+"app.provider_refresh.cancelled_reason" = "Providers update cancelled (%@)";
+"app.provider_refresh.cancelled" = "Providers update cancelled";
+"app.provider_refresh.updating" = "Providers updating (%d/%d)";
+"app.provider_refresh.updated" = "Providers updated";
+"app.provider_refresh.partial_failed" = "Providers partially failed (%d)";
+"app.provider_refresh.failed" = "Providers update failed";
+"app.provider_refresh.reason.stop_requested" = "stop requested";
+"app.provider_refresh.reason.restart_requested" = "restart requested";
+"app.provider_refresh.reason.quit_requested" = "quit requested";
+"app.provider_refresh.reason.config_switch_requested" = "config switch requested";
+"app.provider_refresh.reason.superseded" = "superseded";
+
+"app.stream.label.traffic" = "Traffic";
+"app.stream.label.memory" = "Memory";
+"app.stream.label.connections" = "Connections";
+"app.stream.label.logs" = "Logs";
+
+"log.process.terminated" = "mihomo terminated with code %d";
+"log.working_dir_init_failed" = "Failed to initialize working directory: %@";
+"log.start.no_config" = "No config file selected";
+"log.start.failed" = "Failed to start core: %@";
+"log.restart.failed" = "Failed to restart core: %@";
+"log.config.loaded_count" = "Loaded %d config files";
+"log.config.not_found" = "Config file not found: %@";
+"log.config.selected" = "Selected config: %@";
+"log.config.import.cancelled" = "Import cancelled: %@";
+"log.config.import.invalid_filename" = "Invalid config file name: %@";
+"log.config.import_local.success" = "Imported local config: %@";
+"log.config.import_local.failed" = "Failed to import local config (%@): %@";
+"log.config.import_remote.success" = "Imported remote config: %@";
+"log.config.import_remote.failed" = "Failed to import remote config (%@): %@";
+"log.config.remote.invalid_url" = "Invalid remote config URL: %@";
+"log.config.remote.no_sources" = "No remote config sources available for update";
+"log.config.remote.update_item_failed" = "Remote config update failed (%@): %@";
+"log.config.remote.update_summary" = "Remote config update completed: %d succeeded, %d failed";
+"log.config.show_in_finder.failed" = "Failed to open config directory in Finder: %@";
+"log.system_proxy.toggled" = "System proxy %@";
+"log.system_proxy.enabled" = "enabled";
+"log.system_proxy.disabled" = "disabled";
+"log.system_proxy.toggle_failed" = "System proxy toggle failed: %@";
+"log.system_proxy.port_synced" = "System proxy port synced to %d";
+"log.system_proxy.port_sync_failed" = "Failed to sync system proxy port: %@";
+"log.system_proxy.startup_repaired" = "Startup check fixed system proxy to %@:%d";
+"log.system_proxy.startup_repair_failed" = "Startup system proxy check failed: %@";
+"log.proxy_export.copied" = "Proxy export command copied";
+"log.provider.node_test_failed" = "Provider node test failed (%@/%@): %@";
+"log.provider.healthcheck_failed" = "Provider healthcheck failed (%@): %@";
+"log.logs.copied_all" = "Copied all logs (%d entries)";
+"log.config.changed_restart" = "Config changed, restarting core";
+"log.providers.fetch_proxy_failed" = "Providers refresh: fetch proxy providers failed: %@";
+"log.providers.fetch_rule_failed" = "Providers refresh: fetch rule providers failed: %@";
+"log.providers.config_reload_success" = "Providers refresh: config force reload success";
+"log.providers.config_reload_failed" = "Providers refresh: config force reload failed: %@";
+"log.providers.proxy_update_failed" = "Providers refresh: proxy provider update failed (%@): %@";
+"log.providers.rule_update_failed" = "Providers refresh: rule provider update failed (%@): %@";
+"log.providers.api_unavailable" = "Providers refresh skipped: API unavailable (%@)";
+"log.secret.migration_failed" = "Secret migration to Keychain failed: %@";
+"log.stream.start_failed" = "%@ WS start failed: %@";
+"log.stream.disconnected" = "%@ WS disconnected: %@";
+"log.system_proxy.read_failed" = "Read system proxy status failed: %@";
+"log.launch_at_login.toggle_failed" = "Launch-at-login toggle failed: %@";
+"log.action.success" = "%@: success";
+"log.action.failed" = "%@: %@";
+"log.connection.copy_host" = "Copied connection host: %@";
+"log.connection.copy_id" = "Copied connection ID: %@";
+"log.logs.copied_message" = "Copied log message";
+"log.logs.copied_entry" = "Copied full log entry";
+
+"log.action_name.reload_config" = "Reload config";
+"log.action_name.switch_proxy" = "Switch proxy %@ -> %@";
+"log.action_name.update_rule_provider" = "Update rule provider %@";
+"log.action_name.update_proxy_provider" = "Update proxy provider %@";
+"log.action_name.close_all_connections" = "Close all connections";
+"log.action_name.close_connection" = "Close connection %@";
+"log.action_name.flush_fakeip_cache" = "Flush FakeIP cache";
+"log.action_name.flush_dns_cache" = "Flush DNS cache";
+
+"fmt.common.unknown" = "--";
+"fmt.relative.minutes" = "%dm ago";
+"fmt.relative.hours" = "%dh ago";
+"fmt.relative.days" = "%dd ago";
+"fmt.expiry_short.expired" = "Expired";
+"fmt.expiry_short.today" = "Expires today";
+"fmt.expiry_short.days" = "Expires in %d days";
