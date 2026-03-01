@@ -105,6 +105,22 @@ extension MenuBarRoot {
                     }
                 }
                 settingsDivider
+                settingsMenuRow(
+                    tr("ui.settings.appearance"),
+                    symbol: "circle.lefthalf.filled",
+                    valueText: appearanceModeLabel(appState.appearanceMode)
+                ) { dismiss in
+                    ForEach(AppAppearanceMode.allCases) { mode in
+                        AttachedPopoverMenuItem(
+                            title: appearanceModeLabel(mode),
+                            selected: appState.appearanceMode == mode
+                        ) {
+                            appState.setAppearanceMode(mode)
+                            dismiss()
+                        }
+                    }
+                }
+                settingsDivider
                 settingsToggleRow(
                     tr("ui.settings.allow_lan"),
                     symbol: "network",

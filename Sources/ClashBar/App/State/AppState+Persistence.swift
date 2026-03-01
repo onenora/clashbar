@@ -103,6 +103,15 @@ extension AppState {
         return .zhHans
     }
 
+    func loadPersistedAppearanceMode() -> AppAppearanceMode {
+        if let raw = defaults.string(forKey: appearanceModeKey),
+           let mode = AppAppearanceMode(rawValue: raw) {
+            return mode
+        }
+        defaults.set(AppAppearanceMode.system.rawValue, forKey: appearanceModeKey)
+        return .system
+    }
+
     func loadPersistedRemoteConfigSources() -> [String: String] {
         guard let stored = defaults.dictionary(forKey: remoteConfigSourcesKey) as? [String: String] else {
             return [:]

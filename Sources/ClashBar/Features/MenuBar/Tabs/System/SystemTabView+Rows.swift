@@ -151,4 +151,15 @@ extension MenuBarRoot {
             return tr("ui.settings.display_mode.speed_only")
         }
     }
+
+    func appearanceModeLabel(_ mode: AppAppearanceMode) -> String {
+        switch mode {
+        case .system:
+            return tr("ui.settings.appearance.system")
+        case .light:
+            return tr("ui.settings.appearance.light")
+        case .dark:
+            return tr("ui.settings.appearance.dark")
+        }
+    }
 }

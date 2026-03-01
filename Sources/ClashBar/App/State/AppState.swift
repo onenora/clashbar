@@ -60,6 +60,7 @@ final class AppState: ObservableObject {
     @Published var coreActionState: CoreActionState = .idle
     @Published var providerRefreshStatus: ProviderRefreshStatus = .idle
     @Published var uiLanguage: AppLanguage = .zhHans
+    @Published var appearanceMode: AppAppearanceMode = .system
     @Published var isPanelPresented: Bool = false
     @Published var activeMenuTab: MenuPanelTabHint = .proxy
     @Published var launchAtLoginEnabled: Bool = false
@@ -248,6 +249,7 @@ final class AppState: ObservableObject {
     let lastSuccessfulConfigPathKey = "clashbar.last.success.config.path"
     let editableSettingsSnapshotKey = "clashbar.settings.editable.snapshot.v1"
     let uiLanguageKey = "clashbar.ui.language"
+    let appearanceModeKey = "clashbar.ui.appearance.mode"
     let maxLogEntries = 200
     let hiddenPanelMaxInMemoryLogEntries = 20
     let maxRetainedConnections = 300
@@ -296,6 +298,8 @@ final class AppState: ObservableObject {
         self.mihomoLogStore = mihomoLogStore
         self.configManager = configManager ?? ConfigDirectoryManager(workingDirectoryManager: workingDirectoryManager)
         uiLanguage = loadPersistedUILanguage()
+        appearanceMode = loadPersistedAppearanceMode()
+        applyAppAppearance()
         refreshLaunchAtLoginStatus()
 
         if let managedProcess = self.processManager as? MihomoProcessManager {

@@ -106,6 +106,13 @@ extension AppState {
         defaults.set(language.rawValue, forKey: uiLanguageKey)
     }
 
+    func setAppearanceMode(_ mode: AppAppearanceMode) {
+        guard appearanceMode != mode else { return }
+        appearanceMode = mode
+        defaults.set(mode.rawValue, forKey: appearanceModeKey)
+        applyAppAppearance()
+    }
+
     func quitApp() async {
         cancelProviderRefresh(reason: "quit requested")
         cancelPolling()
@@ -113,6 +120,17 @@ extension AppState {
             processManager.stop()
         }
         NSApplication.shared.terminate(nil)
+    }
+
+    func applyAppAppearance() {
+        switch appearanceMode {
+        case .system:
+            NSApp.appearance = nil
+        case .light:
+            NSApp.appearance = NSAppearance(named: .aqua)
+        case .dark:
+            NSApp.appearance = NSAppearance(named: .darkAqua)
+        }
     }
 
     func normalizeMode(_ raw: String?) -> CoreMode? {

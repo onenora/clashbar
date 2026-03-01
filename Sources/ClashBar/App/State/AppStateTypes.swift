@@ -53,6 +53,14 @@ enum StatusBarDisplayMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+enum AppAppearanceMode: String, CaseIterable, Identifiable {
+    case system = "system"
+    case light = "light"
+    case dark = "dark"
+
+    var id: String { rawValue }
+}
+
 enum MenuPanelTabHint: Equatable {
     case proxy
     case rules

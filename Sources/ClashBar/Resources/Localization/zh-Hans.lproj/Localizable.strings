@@ -85,6 +85,10 @@
 "ui.settings.launch_at_login" = "登录时启动 ClashBar";
 "ui.settings.menu_bar_style" = "状态栏样式";
 "ui.settings.language" = "界面语言";
+"ui.settings.appearance" = "外观模式";
+"ui.settings.appearance.system" = "跟随系统";
+"ui.settings.appearance.light" = "浅色";
+"ui.settings.appearance.dark" = "深色";
 "ui.settings.allow_lan" = "允许局域网";
 "ui.settings.ipv6" = "IPv6";
 "ui.settings.unified_delay" = "统一延迟";

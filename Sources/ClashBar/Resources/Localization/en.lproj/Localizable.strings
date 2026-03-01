@@ -85,6 +85,10 @@
 "ui.settings.launch_at_login" = "Launch ClashBar at Login";
 "ui.settings.menu_bar_style" = "Menu Bar Style";
 "ui.settings.language" = "UI Language";
+"ui.settings.appearance" = "Appearance";
+"ui.settings.appearance.system" = "Follow System";
+"ui.settings.appearance.light" = "Light";
+"ui.settings.appearance.dark" = "Dark";
 "ui.settings.allow_lan" = "Allow LAN";
 "ui.settings.ipv6" = "IPv6";
 "ui.settings.unified_delay" = "Unified Delay";
