@@ -141,6 +141,15 @@ struct MenuBarDisplay: Equatable {
     let speedLines: MenuBarSpeedLines?
 }
 
+struct CoreFeatureRecoveryState {
+    let systemProxyEnabled: Bool
+    let tunEnabled: Bool
+
+    var shouldRecoverAnyFeature: Bool {
+        self.systemProxyEnabled || self.tunEnabled
+    }
+}
+
 struct EditableSettingsSnapshot: Equatable, Codable {
     let allowLan: Bool
     let ipv6: Bool

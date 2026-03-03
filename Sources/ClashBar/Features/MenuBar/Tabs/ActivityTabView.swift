@@ -195,37 +195,37 @@ extension MenuBarRoot {
     func sortedConnections(_ source: [ConnectionSummary]) -> [ConnectionSummary] {
         switch self.networkSortOption {
         case .default:
-            return source
+            source
         case .newest:
-            return source.sorted { lhs, rhs in
+            source.sorted { lhs, rhs in
                 let left = self.connectionSortTimestamp(lhs.start) ?? -1
                 let right = self.connectionSortTimestamp(rhs.start) ?? -1
                 if left != right { return left > right }
                 return lhs.id.localizedStandardCompare(rhs.id) == .orderedAscending
             }
         case .oldest:
-            return source.sorted { lhs, rhs in
+            source.sorted { lhs, rhs in
                 let left = self.connectionSortTimestamp(lhs.start) ?? .greatestFiniteMagnitude
                 let right = self.connectionSortTimestamp(rhs.start) ?? .greatestFiniteMagnitude
                 if left != right { return left < right }
                 return lhs.id.localizedStandardCompare(rhs.id) == .orderedAscending
             }
         case .uploadDesc:
-            return source.sorted { lhs, rhs in
+            source.sorted { lhs, rhs in
                 let left = lhs.upload ?? 0
                 let right = rhs.upload ?? 0
                 if left != right { return left > right }
                 return (self.connectionSortTimestamp(lhs.start) ?? -1) > (self.connectionSortTimestamp(rhs.start) ?? -1)
             }
         case .downloadDesc:
-            return source.sorted { lhs, rhs in
+            source.sorted { lhs, rhs in
                 let left = lhs.download ?? 0
                 let right = rhs.download ?? 0
                 if left != right { return left > right }
                 return (self.connectionSortTimestamp(lhs.start) ?? -1) > (self.connectionSortTimestamp(rhs.start) ?? -1)
             }
         case .totalDesc:
-            return source.sorted { lhs, rhs in
+            source.sorted { lhs, rhs in
                 let left = (lhs.upload ?? 0) + (lhs.download ?? 0)
                 let right = (rhs.upload ?? 0) + (rhs.download ?? 0)
                 if left != right { return left > right }

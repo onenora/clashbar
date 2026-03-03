@@ -336,6 +336,7 @@ final class AppState: ObservableObject {
     var networkReachabilityStatus: NetworkReachabilityStatus = .unknown
     var shouldResumeCoreAfterNetworkRecovery = false
     var isNetworkReachabilityMonitoring = false
+    var pendingCoreFeatureRecoveryState: CoreFeatureRecoveryState?
     var remoteConfigSources: [String: String] = [:]
     var externalControllerWarningKeys: Set<String> = []
     let streamJSONDecoder = JSONDecoder()
