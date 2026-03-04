@@ -44,7 +44,6 @@ extension MenuBarRoot {
         let hovered = hoveredProxyProviderName == name
 
         return AttachedPopoverMenu(
-            width: 292,
             onWillPresent: {
                 Task { await appState.ensureProviderNodesLoaded(provider: name) }
             },
@@ -158,10 +157,13 @@ extension MenuBarRoot {
 
                 let nodes = sortedProviderNodes(provider: name, detail: detail)
                 self.popoverNodesList(nodes) { node in
+                    let nodeKey = appState.providerNodeKey(provider: name, node: node)
                     ProxyGroupPopoverNodeItem(
                         title: node,
                         delayText: appState.providerNodeDelayText(provider: name, node: node),
+                        delayValue: appState.providerNodeLatencies[name]?[node],
                         delayColor: latencyColor(appState.providerNodeLatencies[name]?[node]),
+                        isTesting: appState.providerNodeTesting.contains(nodeKey),
                         selected: false)
                     {
                         dismiss()
@@ -181,11 +183,15 @@ extension MenuBarRoot {
         action: @escaping () async -> Void) -> some View
     {
         let tone = symbol == "gauge" ? nativeTeal : (symbol == "arrow.clockwise" ? nativeInfo : nativeAccent)
+        let icon = symbol == "gauge"
+            ? "gauge.with.dots.needle.50percent"
+            : (symbol == "arrow.clockwise" ? "arrow.triangle.2.circlepath" : symbol)
+        let label = symbol == "gauge" ? tr("ui.action.test_latency") : tr("ui.action.refresh")
 
-        return roundedIconActionButton(
-            symbol: symbol,
-            size: 14,
-            foreground: tone.opacity(0.92),
+        return BorderlessAsyncIconActionButton(
+            symbol: icon,
+            label: label,
+            tint: tone.opacity(0.96),
             isLoading: isLoading,
             action: action)
     }
@@ -235,7 +241,7 @@ extension MenuBarRoot {
         let rowVerticalPadding: CGFloat = 1
         let hovered = hoveredProxyGroupName == group.name
 
-        return AttachedPopoverMenu(width: 272) {
+        return AttachedPopoverMenu {
             GeometryReader { geo in
                 let columns = self.proxyGroupMainColumnWidths(
                     totalWidth: geo.size.width,
@@ -303,16 +309,6 @@ extension MenuBarRoot {
 
                 Spacer(minLength: 0)
 
-                Text(currentNode)
-                    .font(.appSystem(size: 11, weight: .medium))
-                    .foregroundStyle(nativeSecondaryLabel)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 1)
-                    .background(nativeBadgeCapsule())
-                    .frame(maxWidth: 116, alignment: .trailing)
-
                 Text("\(nodeCount)")
                     .font(.appMonospaced(size: 10, weight: .medium))
                     .foregroundStyle(nativeSecondaryLabel)
@@ -332,7 +328,9 @@ extension MenuBarRoot {
                 ProxyGroupPopoverNodeItem(
                     title: node,
                     delayText: appState.delayText(group: group.name, node: node),
+                    delayValue: appState.delayValue(group: group.name, node: node),
                     delayColor: latencyColor(appState.delayValue(group: group.name, node: node)),
+                    isTesting: false,
                     selected: node == group.now)
                 {
                     dismiss()
@@ -385,12 +383,10 @@ extension MenuBarRoot {
         isLoading: Bool = false,
         action: @escaping () async -> Void) -> some View
     {
-        asyncBorderedIconButton(
-            symbol: "gauge",
+        BorderlessAsyncIconActionButton(
+            symbol: "gauge.with.dots.needle.50percent",
             label: tr("ui.action.test_latency"),
-            fontSize: 10,
-            controlSize: .mini,
-            tint: nativeTeal.opacity(0.92),
+            tint: nativeTeal.opacity(0.96),
             isLoading: isLoading,
             action: action)
     }
@@ -455,7 +451,9 @@ extension MenuBarRoot {
 private struct ProxyGroupPopoverNodeItem: View {
     let title: String
     let delayText: String
+    let delayValue: Int?
     let delayColor: Color
+    let isTesting: Bool
     let selected: Bool
     let action: () -> Void
 
@@ -479,11 +477,11 @@ private struct ProxyGroupPopoverNodeItem: View {
 
                 Spacer(minLength: 0)
 
-                Text(self.delayText)
-                    .font(.appMonospaced(size: 10, weight: .regular))
-                    .foregroundStyle(self.delayColor.opacity(self.selected ? 1 : 0.85))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                if self.isTesting {
+                    RotatingRefreshDelayIndicator()
+                } else {
+                    self.delayMetricView
+                }
             }
             .frame(height: 20)
             .padding(.horizontal, 4)
@@ -504,5 +502,85 @@ private struct ProxyGroupPopoverNodeItem: View {
             return Color(nsColor: .selectedContentBackgroundColor).opacity(0.22)
         }
         return .clear
+    }
+
+    @ViewBuilder
+    var delayMetricView: some View {
+        if let delayValue {
+            let isTimeout = delayValue == 0
+            let foreground: Color = isTimeout ? Color(nsColor: .secondaryLabelColor) : .white
+            let background: Color = isTimeout
+                ? Color(nsColor: .quaternaryLabelColor).opacity(0.48)
+                : self.delayColor.opacity(self.selected ? 1 : 0.94)
+
+            Text(self.delayText)
+                .font(.appMonospaced(size: 10, weight: .semibold))
+                .foregroundStyle(foreground)
+                .lineLimit(1)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 1.5)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(background))
+        } else {
+            Text(self.delayText)
+                .font(.appMonospaced(size: 10, weight: .regular))
+                .foregroundStyle(self.delayColor.opacity(self.selected ? 1 : 0.85))
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+        }
+    }
+}
+
+private struct RotatingRefreshDelayIndicator: View {
+    @State private var spinning = false
+
+    var body: some View {
+        Image(systemName: "arrow.triangle.2.circlepath")
+            .font(.appSystem(size: 10, weight: .semibold))
+            .foregroundStyle(Color(nsColor: .secondaryLabelColor))
+            .rotationEffect(.degrees(self.spinning ? 360 : 0))
+            .animation(
+                self.spinning
+                    ? .linear(duration: 0.9).repeatForever(autoreverses: false)
+                    : .default,
+                value: self.spinning)
+            .frame(width: 24, alignment: .trailing)
+            .onAppear { self.spinning = true }
+            .onDisappear { self.spinning = false }
+    }
+}
+
+private struct BorderlessAsyncIconActionButton: View {
+    let symbol: String
+    let label: String
+    let tint: Color
+    let isLoading: Bool
+    let action: () async -> Void
+
+    @State private var hovered = false
+
+    var body: some View {
+        Button {
+            Task { await self.action() }
+        } label: {
+            ZStack {
+                Image(systemName: self.symbol)
+                    .font(.appSystem(size: 10.5, weight: .semibold))
+                    .foregroundStyle(self.hovered ? self.tint : Color(nsColor: .secondaryLabelColor))
+                    .symbolRenderingMode(.hierarchical)
+                    .opacity(self.isLoading ? 0 : 1)
+
+                ProgressView()
+                    .controlSize(.mini)
+                    .opacity(self.isLoading ? 1 : 0)
+            }
+            .frame(width: 16, height: 16)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel(self.label)
+        .disabled(self.isLoading)
+        .onHover { self.hovered = $0 }
     }
 }

@@ -219,6 +219,7 @@ struct MenuBarRoot: View {
             .frame(height: tabScrollAreaHeight)
 
             footerBar
+                .padding(.top, MenuBarLayoutTokens.sectionGap)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .reportHeight { updateSectionHeight($0, target: .footer) }
         }
@@ -239,10 +240,10 @@ struct MenuBarRoot: View {
             self.appState.setActiveMenuTab(menuPanelTabHint(for: self.currentTab))
             publishPreferredPanelHeight()
         }
-        .onChange(of: self.currentTab) { _, tab in
+        .onChange(of: self.currentTab) { tab in
             self.appState.setActiveMenuTab(menuPanelTabHint(for: tab))
         }
-        .onChange(of: self.appState.activeMenuTab) { _, hint in
+        .onChange(of: self.appState.activeMenuTab) { hint in
             let tab = rootTab(for: hint)
             guard self.currentTab != tab else { return }
 
@@ -252,10 +253,10 @@ struct MenuBarRoot: View {
                 self.currentTab = tab
             }
         }
-        .onChange(of: resolvedPanelHeight) { _, _ in
+        .onChange(of: resolvedPanelHeight) { _ in
             publishPreferredPanelHeight()
         }
-        .onChange(of: self.popoverLayoutModel.maxPanelHeight) { _, _ in
+        .onChange(of: self.popoverLayoutModel.maxPanelHeight) { _ in
             publishPreferredPanelHeight()
         }
     }

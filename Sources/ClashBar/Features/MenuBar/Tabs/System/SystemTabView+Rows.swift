@@ -96,7 +96,7 @@ extension MenuBarRoot {
                 .foregroundStyle(nativePrimaryLabel)
                 .multilineTextAlignment(.trailing)
                 .frame(width: settingsPortFieldWidth, alignment: .trailing)
-                .onChange(of: text.wrappedValue) { _, _ in
+                .onChange(of: text.wrappedValue) { _ in
                     appState.scheduleProxyPortsAutoSaveIfNeeded()
                 }
                 .onSubmit {
@@ -109,8 +109,14 @@ extension MenuBarRoot {
         Button {
             Task { await action() }
         } label: {
-            Label(title, systemImage: symbol)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            Label {
+                Text(title)
+                    .lineLimit(1)
+                    .multilineTextAlignment(.center)
+            } icon: {
+                Image(systemName: symbol)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
