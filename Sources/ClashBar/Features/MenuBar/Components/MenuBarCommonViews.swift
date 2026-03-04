@@ -94,7 +94,7 @@ extension MenuBarRoot {
 
     func emptyCard(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 12, weight: .regular))
+            .font(.appSystem(size: 12, weight: .regular))
             .foregroundStyle(self.nativeSecondaryLabel)
             .frame(maxWidth: .infinity, alignment: .leading)
             .menuRowPadding()
@@ -160,12 +160,12 @@ extension MenuBarRoot {
         HStack(spacing: 4) {
             if let iconSystemName {
                 Image(systemName: iconSystemName)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.appSystem(size: 10, weight: .semibold))
                     .foregroundStyle(self.nativeSecondaryLabel)
             }
 
             Text(text)
-                .font(.system(size: 11, weight: .medium))
+                .font(.appSystem(size: 11, weight: .medium))
                 .foregroundStyle(self.nativeSecondaryLabel)
                 .lineLimit(1)
                 .truncationMode(.middle)
@@ -367,7 +367,7 @@ extension MenuBarRoot {
         } label: {
             ZStack {
                 Image(systemName: symbol)
-                    .font(.system(size: style.fontSize, weight: .semibold))
+                    .font(.appSystem(size: style.fontSize, weight: .semibold))
                     .opacity(isLoading ? 0 : 1)
 
                 ProgressView()
