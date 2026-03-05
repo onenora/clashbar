@@ -291,3 +291,4 @@
 "fmt.expiry_short.expired" = "已过期";
 "fmt.expiry_short.today" = "今天过期";
 "fmt.expiry_short.days" = "%d天后过期";
+"fmt.expiry_short.long_term" = "长期";

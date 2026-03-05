@@ -291,3 +291,4 @@
 "fmt.expiry_short.expired" = "Expired";
 "fmt.expiry_short.today" = "Expires today";
 "fmt.expiry_short.days" = "Expires in %d days";
+"fmt.expiry_short.long_term" = "Long-term";
