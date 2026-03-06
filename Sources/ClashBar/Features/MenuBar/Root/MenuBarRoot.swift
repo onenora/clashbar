@@ -180,11 +180,8 @@ struct MenuBarRoot: View {
     @State var tabContentHeights: [RootTab: CGFloat] = [:]
     @AppStorage("clashbar.proxy.group.hide_hidden") var hideHiddenProxyGroups: Bool = true
 
-    let panelWidth: CGFloat = 360
-    let fallbackTabContentHeight: CGFloat = 380
-
     var contentWidth: CGFloat {
-        self.panelWidth - (MenuBarLayoutTokens.hPage * 2)
+        MenuBarLayoutTokens.panelWidth - (MenuBarLayoutTokens.hPage * 2)
     }
 
     var language: AppLanguage {
@@ -213,7 +210,7 @@ struct MenuBarRoot: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .reportHeight { updateSectionHeight($0, target: .modeAndTab) }
 
-            ScrollView(.vertical, showsIndicators: false) {
+            ScrollView(.vertical) {
                 self.tabScrollContent(for: self.currentTab)
             }
             .scrollIndicators(.hidden)
@@ -228,7 +225,7 @@ struct MenuBarRoot: View {
         }
         .frame(width: self.contentWidth, alignment: .leading)
         .padding(MenuBarLayoutTokens.hPage)
-        .frame(width: self.panelWidth, height: resolvedPanelHeight)
+        .frame(width: MenuBarLayoutTokens.panelWidth, height: resolvedPanelHeight)
         .background(self.panelBackground)
         .clipShape(RoundedRectangle(cornerRadius: MenuBarLayoutTokens.panelCornerRadius, style: .continuous))
         .onAppear {
@@ -283,6 +280,7 @@ struct MenuBarRoot: View {
     func tabScrollContent(for tab: RootTab) -> some View {
         self.tabBody(for: tab)
             .padding(.top, self.tabContentTopInset)
+            .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
             .reportHeight { updateTabContentHeight($0, for: tab) }
     }

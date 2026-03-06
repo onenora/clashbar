@@ -4,7 +4,7 @@ import Foundation
 extension AppState {
     enum EditableCoreSetting: String, CaseIterable, Identifiable {
         case allowLan = "allow-lan"
-        case ipv6 = "ipv6"
+        case ipv6
         case tcpConcurrent = "tcp-concurrent"
         case logLevel = "log-level"
 

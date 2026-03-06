@@ -39,7 +39,7 @@ extension AppState {
 
             settingsOverlay = try await prepareTunOverlayForCoreStartup(settingsOverlay)
 
-            guard self.validateConfigBeforeCoreLaunch(configPath: configPath) else {
+            guard await self.validateConfigBeforeCoreLaunch(configPath: configPath) else {
                 preserveLocalSettingsOnNextSync = false
                 if trigger == .auto {
                     let fileName = URL(fileURLWithPath: configPath).lastPathComponent
@@ -55,7 +55,7 @@ extension AppState {
 
             let launchController = applyExternalControllerFromSelectedConfigFile(configPath: configPath)
             statusText = "Starting"
-            _ = try processManager.start(configPath: configPath, controller: launchController)
+            _ = try await processManager.startAsync(configPath: configPath, controller: launchController)
 
             await self.completeCoreBootstrap(
                 configPath: configPath,
@@ -97,7 +97,7 @@ extension AppState {
             fallbackRecovery: recoverySnapshotBeforeStop)
         self.cancelDeferredEditableSettingsOverlaySync()
         cancelProviderRefresh(reason: "stop requested")
-        processManager.stop()
+        await processManager.stopAsync()
         cancelPolling()
         statusText = "Stopped"
         apiStatus = .unknown
@@ -121,7 +121,7 @@ extension AppState {
                 return
             }
 
-            guard self.validateConfigBeforeCoreLaunch(configPath: configPath) else {
+            guard await self.validateConfigBeforeCoreLaunch(configPath: configPath) else {
                 preserveLocalSettingsOnNextSync = false
                 return
             }
@@ -131,7 +131,7 @@ extension AppState {
             await self.prepareCoreFeatureRecoveryBeforeCoreTransition(
                 fallbackRecovery: recoverySnapshotBeforeRestart)
             let settingsOverlay = self.overlayApplyingPendingCoreFeatureRecovery(currentEditableSettingsSnapshot())
-            _ = try processManager.restart(configPath: configPath, controller: launchController)
+            _ = try await processManager.restartAsync(configPath: configPath, controller: launchController)
             await self.completeCoreBootstrap(
                 configPath: configPath,
                 settingsOverlay: settingsOverlay,
@@ -175,20 +175,27 @@ extension AppState {
     }
 
     func quitApp() async {
-        self.shutdownForTermination()
+        self.prepareForTermination()
+        if processManager.isRunning {
+            await processManager.stopAsync()
+        }
         NSApplication.shared.terminate(nil)
     }
 
     func shutdownForTermination() {
+        self.prepareForTermination()
+        if processManager.isRunning {
+            processManager.stop()
+        }
+    }
+
+    private func prepareForTermination() {
         shouldResumeCoreAfterNetworkRecovery = false
         stopNetworkReachabilityMonitoring(resetState: true)
         stopConfigDirectoryMonitoring()
         self.cancelDeferredEditableSettingsOverlaySync()
         cancelProviderRefresh(reason: "quit requested")
         cancelPolling()
-        if processManager.isRunning {
-            processManager.stop()
-        }
     }
 
     func applyAppAppearance() {
@@ -208,19 +215,13 @@ extension AppState {
     }
 
     @discardableResult
-    func validateConfigBeforeCoreLaunch(configPath: String) -> Bool {
-        do {
-            try processManager.validateConfig(configPath: configPath)
+    func validateConfigBeforeCoreLaunch(configPath: String) async -> Bool {
+        guard let details = await self.configValidationFailureDetails(configPath: configPath) else {
             return true
-        } catch {
-            let fileName = URL(fileURLWithPath: configPath).lastPathComponent
-            let detailsRaw = error.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-            let details = detailsRaw.isEmpty ? tr("ui.common.unknown") : detailsRaw
-
-            appendLog(level: "error", message: tr("log.config.validate_failed", fileName, details))
-            self.presentConfigValidationFailedAlert(fileName: fileName, details: details)
-            return false
         }
+
+        self.handleConfigValidationFailure(configPath: configPath, details: details)
+        return false
     }
 
     private func presentConfigValidationFailedAlert(fileName: String, details: String) {
@@ -232,6 +233,22 @@ extension AppState {
         self.prepareModalWindowPresentation()
         self.configureModalWindow(alert.window)
         alert.runModal()
+    }
+
+    func configValidationFailureDetails(configPath: String) async -> String? {
+        do {
+            try await processManager.validateConfigAsync(configPath: configPath)
+            return nil
+        } catch {
+            let detailsRaw = error.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+            return detailsRaw.isEmpty ? tr("ui.common.unknown") : detailsRaw
+        }
+    }
+
+    func handleConfigValidationFailure(configPath: String, details: String) {
+        let fileName = URL(fileURLWithPath: configPath).lastPathComponent
+        appendLog(level: "error", message: tr("log.config.validate_failed", fileName, details))
+        self.presentConfigValidationFailedAlert(fileName: fileName, details: details)
     }
 
     func presentCoreFailureAlert(

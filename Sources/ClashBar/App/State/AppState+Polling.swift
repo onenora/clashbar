@@ -91,6 +91,7 @@ extension AppState {
         self.updateDataAcquisitionPolicy()
 
         guard presented else { return }
+        self.flushPendingTrafficSnapshotIfNeeded(immediately: true)
         self.scheduleRefreshForActivatedTab(activeMenuTab)
     }
 
@@ -116,9 +117,11 @@ extension AppState {
         panelPresented: Bool,
         activeTab: MenuPanelTabHint) -> DataAcquisitionPolicy
     {
+        let trafficEnabled = panelPresented || self.statusBarDisplayMode != .iconOnly
+
         if !panelPresented {
             return DataAcquisitionPolicy(
-                enableTrafficStream: true,
+                enableTrafficStream: trafficEnabled,
                 enableMemoryStream: false,
                 enableConnectionsStream: false,
                 connectionsIntervalMilliseconds: nil,
@@ -139,7 +142,7 @@ extension AppState {
         let logsEnabled = activeTab == .logs
 
         return DataAcquisitionPolicy(
-            enableTrafficStream: true,
+            enableTrafficStream: trafficEnabled,
             enableMemoryStream: memoryEnabled,
             enableConnectionsStream: connectionsEnabled,
             connectionsIntervalMilliseconds: connectionsEnabled ? 1000 : nil,
@@ -148,7 +151,7 @@ extension AppState {
             lowFrequencyIntervalNanoseconds: lowFrequencyInterval)
     }
 
-    private func updateDataAcquisitionPolicy() {
+    func updateDataAcquisitionPolicy() {
         guard processManager.isRunning else {
             self.ensurePeriodicTasksForCurrentVisibility()
             mediumFrequencyIntervalNanoseconds = foregroundMediumFrequencyIntervalNanoseconds

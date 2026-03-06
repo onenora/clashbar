@@ -36,7 +36,6 @@ final class StatusItemController: NSObject {
     private let panel: FloatingPanel
     private let statusContentView: StatusItemContentView
     private let popoverLayoutModel = PopoverLayoutModel()
-    private let popoverContentWidth: CGFloat = 340
     private let popoverFallbackMaxHeight: CGFloat = 640
     private let popoverMinimumHeight: CGFloat = 280
     private let popoverScreenPadding: CGFloat = 10
@@ -54,9 +53,11 @@ final class StatusItemController: NSObject {
     private var screenParametersObserver: Any?
     private var lockedPanelOriginX: CGFloat?
     private var popoverHostingController: NSHostingController<AnyView>?
+    private var scrollIndicatorSuppressionTask: Task<Void, Never>?
 
     private let iconOnlyRefreshInterval: TimeInterval = 0.12
-    private let speedDisplayRefreshInterval: TimeInterval = 0.35
+    private let speedDisplayRefreshInterval: TimeInterval = 0.5
+    private static let popoverContentWidth: CGFloat = MenuBarLayoutTokens.panelWidth
 
     init(appState: AppState) {
         self.appState = appState
@@ -65,7 +66,7 @@ final class StatusItemController: NSObject {
             contentRect: NSRect(
                 x: 0,
                 y: 0,
-                width: self.popoverContentWidth,
+                width: Self.popoverContentWidth,
                 height: self.popoverLayoutModel.preferredPanelHeight),
             styleMask: [.borderless],
             backing: .buffered,
@@ -87,6 +88,8 @@ final class StatusItemController: NSObject {
         self.refreshWorkItem?.cancel()
         self.pendingDisplay = nil
         self.pendingRenderKey = nil
+        self.scrollIndicatorSuppressionTask?.cancel()
+        self.scrollIndicatorSuppressionTask = nil
         self.changeCancellable?.cancel()
         self.layoutCancellable?.cancel()
         self.stopGlobalMonitor()
@@ -113,6 +116,7 @@ final class StatusItemController: NSObject {
         self.placePanelRelativeToStatusButton(button, preserveHorizontalPosition: false)
         NSApp.activate(ignoringOtherApps: true)
         self.panel.makeKeyAndOrderFront(nil)
+        self.scheduleScrollIndicatorSuppressionPasses()
         self.startGlobalMonitor()
         self.appState.setPanelVisibility(true)
     }
@@ -121,6 +125,8 @@ final class StatusItemController: NSObject {
     private func closePopover(_ sender: Any?) {
         self.panel.orderOut(sender)
         self.lockedPanelOriginX = nil
+        self.scrollIndicatorSuppressionTask?.cancel()
+        self.scrollIndicatorSuppressionTask = nil
         self.stopGlobalMonitor()
         self.unloadPopoverContent()
         self.appState.setPanelVisibility(false)
@@ -146,6 +152,7 @@ final class StatusItemController: NSObject {
             self.popoverHostingController?.rootView = self.makePopoverRootView()
         }
         self.panel.contentViewController = self.popoverHostingController
+        self.suppressPanelScrollIndicators()
     }
 
     private func unloadPopoverContent() {
@@ -156,6 +163,7 @@ final class StatusItemController: NSObject {
     private func makePopoverRootView() -> AnyView {
         AnyView(
             MenuBarRoot()
+                .progressViewStyle(HiddenProgressViewStyle())
                 .environmentObject(self.appState)
                 .environmentObject(self.popoverLayoutModel))
     }
@@ -345,8 +353,10 @@ final class StatusItemController: NSObject {
     private func applyPopoverSize(preferredHeight: CGFloat, preserveHorizontalPosition: Bool) {
         let maximumHeight = max(1, popoverLayoutModel.maxPanelHeight)
         let minimumHeight = min(popoverMinimumHeight, maximumHeight)
-        let clampedHeight = max(minimumHeight, min(preferredHeight, maximumHeight)).rounded(.down)
-        let targetSize = NSSize(width: popoverContentWidth, height: clampedHeight)
+        let clampedHeight = min(
+            maximumHeight,
+            max(minimumHeight, min(preferredHeight, maximumHeight)).rounded(.up))
+        let targetSize = NSSize(width: Self.popoverContentWidth, height: clampedHeight)
 
         let widthChanged = abs(panel.frame.width - targetSize.width) > 0.5
         let heightChanged = abs(panel.frame.height - targetSize.height) > 0.5
@@ -360,12 +370,29 @@ final class StatusItemController: NSObject {
         {
             let frame = NSRect(origin: origin, size: targetSize)
             self.panel.setFrame(frame, display: true, animate: false)
+            self.suppressPanelScrollIndicators()
             return
         }
 
         var newFrame = self.panel.frame
         newFrame.size = targetSize
         self.panel.setFrame(newFrame, display: true, animate: false)
+        self.suppressPanelScrollIndicators()
+    }
+
+    private func scheduleScrollIndicatorSuppressionPasses() {
+        self.scrollIndicatorSuppressionTask?.cancel()
+        self.scrollIndicatorSuppressionTask = Task { @MainActor [weak self] in
+            for _ in 0..<12 {
+                guard let self else { return }
+                self.suppressPanelScrollIndicators()
+                try? await Task.sleep(nanoseconds: 40_000_000)
+            }
+        }
+    }
+
+    private func suppressPanelScrollIndicators() {
+        ScrollIndicatorPolicy.suppressRecursively(in: self.panel.contentView)
     }
 
     private func placePanelRelativeToStatusButton(_ button: NSStatusBarButton?, preserveHorizontalPosition: Bool) {

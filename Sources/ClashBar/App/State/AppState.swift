@@ -190,6 +190,10 @@ final class AppState: ObservableObject {
             guard self.statusBarDisplayModeRaw != newValue.rawValue else { return }
             self.statusBarDisplayModeRaw = newValue.rawValue
             self.refreshMenuBarDisplaySnapshotIfNeeded()
+            self.updateDataAcquisitionPolicy()
+            if newValue != .iconOnly {
+                self.flushPendingTrafficSnapshotIfNeeded(immediately: true)
+            }
         }
     }
 
@@ -308,8 +312,11 @@ final class AppState: ObservableObject {
     var networkAutoStartTask: Task<Void, Never>?
     var deferredEditableSettingsOverlayTask: Task<Void, Never>?
     var configDirectoryMonitorTask: Task<Void, Never>?
+    var trafficDecodeTask: Task<Void, Never>?
     var providerRefreshGeneration: Int = 0
     var lastTrafficSampleAt: Date?
+    var lastTrafficDecodeAt: Date = .distantPast
+    var pendingTrafficPayload: Data?
     var modeSwitchInFlight = false
     var activatedTabRefreshGeneration: Int = 0
     var configFileSignatureSnapshot: [String: String] = [:]
@@ -337,6 +344,7 @@ final class AppState: ObservableObject {
     let foregroundLowFrequencyPrimaryTabsIntervalNanoseconds: UInt64 = 20_000_000_000
     let foregroundLowFrequencyOtherTabsIntervalNanoseconds: UInt64 = 45_000_000_000
     let backgroundLowFrequencyIntervalNanoseconds: UInt64 = 120_000_000_000
+    let trafficPublishIntervalNanoseconds: UInt64 = 500_000_000
     let streamDisconnectLogThrottleInterval: TimeInterval = 2
     let streamReconnectBaseDelayNanoseconds: UInt64 = 1_000_000_000
     let streamReconnectMaxDelayNanoseconds: UInt64 = 8_000_000_000
@@ -475,6 +483,7 @@ final class AppState: ObservableObject {
         networkAutoStartTask?.cancel()
         deferredEditableSettingsOverlayTask?.cancel()
         configDirectoryMonitorTask?.cancel()
+        trafficDecodeTask?.cancel()
         mediumFrequencyTask?.cancel()
         lowFrequencyTask?.cancel()
         for task in streamReceiveTasks.values {

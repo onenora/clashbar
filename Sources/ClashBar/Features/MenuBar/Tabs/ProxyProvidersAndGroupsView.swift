@@ -14,7 +14,7 @@ extension MenuBarRoot {
             if providers.isEmpty {
                 emptyCard(tr("ui.empty.proxy_providers"))
             } else {
-                LazyVStack(spacing: 0) {
+                VStack(spacing: 0) {
                     ForEach(Array(providers.enumerated()), id: \.element) { index, name in
                         self.proxyProviderRow(name: name, detail: appState.proxyProvidersDetail[name])
 
@@ -242,7 +242,7 @@ extension MenuBarRoot {
             if groups.isEmpty {
                 emptyCard(tr("ui.empty.proxy_groups"))
             } else {
-                LazyVStack(spacing: 2) {
+                VStack(spacing: 2) {
                     ForEach(groups, id: \.name) { group in
                         self.proxyGroupInlineRow(group)
                     }

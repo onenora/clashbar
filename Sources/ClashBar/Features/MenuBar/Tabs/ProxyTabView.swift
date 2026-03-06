@@ -19,6 +19,7 @@ extension MenuBarRoot {
             }
             proxyGroupsSection
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     var trafficOverview: some View {

@@ -18,11 +18,20 @@ final class StatusItemContentView: NSView {
         return imageView
     }()
 
-    private let upLabel = StatusItemContentView.makeLineLabel()
-    private let downLabel = StatusItemContentView.makeLineLabel()
-
     private var currentDisplay: MenuBarDisplay?
+    private var cachedUpLine: String = ""
+    private var cachedDownLine: String = ""
     private lazy var brandStatusIconImage: NSImage? = Self.makeBrandStatusIconImage(size: brandIconRenderSize)
+    private static let speedTextAttributes: [NSAttributedString.Key: Any] = {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .right
+        paragraph.lineBreakMode = .byTruncatingHead
+        return [
+            .font: NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .medium),
+            .foregroundColor: NSColor.labelColor,
+            .paragraphStyle: paragraph,
+        ]
+    }()
 
     var usesBrandIcon: Bool {
         self.brandStatusIconImage != nil
@@ -31,9 +40,7 @@ final class StatusItemContentView: NSView {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = false
-        addSubview(self.iconView)
-        addSubview(self.upLabel)
-        addSubview(self.downLabel)
+        self.addSubview(self.iconView)
     }
 
     @available(*, unavailable)
@@ -68,18 +75,12 @@ final class StatusItemContentView: NSView {
         let previousMode = self.currentDisplay?.mode
         let previousSymbolName = self.currentDisplay?.symbolName
         let previousIconHidden = self.iconView.isHidden
-        let previousUpHidden = self.upLabel.isHidden
-        let previousDownHidden = self.downLabel.isHidden
+        let previousUpLine = self.cachedUpLine
+        let previousDownLine = self.cachedDownLine
 
         self.currentDisplay = display
-        let upLine = display.speedLines?.up ?? ""
-        if self.upLabel.stringValue != upLine {
-            self.upLabel.stringValue = upLine
-        }
-        let downLine = display.speedLines?.down ?? ""
-        if self.downLabel.stringValue != downLine {
-            self.downLabel.stringValue = downLine
-        }
+        self.cachedUpLine = display.speedLines?.up ?? ""
+        self.cachedDownLine = display.speedLines?.down ?? ""
 
         let shouldShowIcon = display.mode != .speedOnly
         if shouldShowIcon, let brandIcon = brandStatusIconImage {
@@ -89,7 +90,10 @@ final class StatusItemContentView: NSView {
             // Avoid per-frame tint recomposition for custom PNG icon snapshots.
             self.iconView.contentTintColor = nil
         } else if let symbolName = display.symbolName {
-            if self.iconView.image == nil || previousSymbolName != symbolName || self.currentDisplay?.mode != previousMode {
+            if self.iconView.image == nil ||
+                previousSymbolName != symbolName ||
+                self.currentDisplay?.mode != previousMode
+            {
                 let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "ClashBar")
                 let config = NSImage.SymbolConfiguration(pointSize: self.symbolPointSize, weight: .semibold)
                 self.iconView.image = image?.withSymbolConfiguration(config)
@@ -103,25 +107,21 @@ final class StatusItemContentView: NSView {
         switch display.mode {
         case .iconOnly:
             self.iconView.isHidden = false
-            self.upLabel.isHidden = true
-            self.downLabel.isHidden = true
         case .iconAndSpeed:
             self.iconView.isHidden = false
-            self.upLabel.isHidden = false
-            self.downLabel.isHidden = false
         case .speedOnly:
             self.iconView.isHidden = true
-            self.upLabel.isHidden = false
-            self.downLabel.isHidden = false
         }
 
         let modeChanged = previousMode != display.mode
-        let visibilityChanged = previousIconHidden != self.iconView.isHidden ||
-            previousUpHidden != self.upLabel.isHidden ||
-            previousDownHidden != self.downLabel.isHidden
+        let iconVisibilityChanged = previousIconHidden != self.iconView.isHidden
+        let speedTextChanged = previousUpLine != self.cachedUpLine || previousDownLine != self.cachedDownLine
 
-        if modeChanged || visibilityChanged {
+        if modeChanged || iconVisibilityChanged {
             self.needsLayout = true
+        }
+        if modeChanged || speedTextChanged {
+            self.needsDisplay = true
         }
         if modeChanged {
             self.invalidateIntrinsicContentSize()
@@ -133,51 +133,52 @@ final class StatusItemContentView: NSView {
 
         let totalHeight = bounds.height
         let centerY = floor(totalHeight / 2)
-        var cursorX = floor(self.statusItemHorizontalPadding)
+        let iconOriginX = floor(self.statusItemHorizontalPadding)
 
         if self.iconView.isHidden == false {
             self.iconView.frame = CGRect(
-                x: floor(cursorX),
+                x: iconOriginX,
                 y: floor(centerY - self.iconSize / 2),
                 width: self.iconSize,
                 height: self.iconSize)
-            cursorX += self.iconSize + self.iconTextSpacing
         } else {
             self.iconView.frame = .zero
         }
+    }
 
-        if self.upLabel.isHidden || self.downLabel.isHidden {
-            self.upLabel.frame = .zero
-            self.downLabel.frame = .zero
-            return
-        }
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        guard let display = self.currentDisplay else { return }
+        guard display.mode != .iconOnly else { return }
 
+        let originX = floor(
+            self.statusItemHorizontalPadding +
+                (display.mode == .iconAndSpeed ? (self.iconSize + self.iconTextSpacing) : 0))
+        let centerY = floor(self.bounds.height / 2)
         let stackHeight = self.textLineHeight * 2
         let stackOriginY = floor(centerY - stackHeight / 2)
-        let textOriginX = floor(cursorX)
 
-        self.upLabel.frame = CGRect(
-            x: textOriginX,
+        let upRect = CGRect(
+            x: originX,
             y: floor(stackOriginY + self.textLineHeight),
             width: self.textContainerWidth,
             height: self.textLineHeight)
-        self.downLabel.frame = CGRect(
-            x: textOriginX,
+        let downRect = CGRect(
+            x: originX,
             y: stackOriginY,
             width: self.textContainerWidth,
             height: self.textLineHeight)
-    }
 
-    private static func makeLineLabel() -> NSTextField {
-        let label = NSTextField(labelWithString: "")
-        label.font = .monospacedDigitSystemFont(ofSize: 9, weight: .medium)
-        label.textColor = .labelColor
-        label.alignment = .right
-        label.lineBreakMode = .byTruncatingHead
-        label.maximumNumberOfLines = 2
-        label.cell?.usesSingleLineMode = true
-        label.translatesAutoresizingMaskIntoConstraints = true
-        return label
+        if !dirtyRect.intersects(upRect), !dirtyRect.intersects(downRect) {
+            return
+        }
+
+        (self.cachedUpLine as NSString).draw(
+            in: upRect,
+            withAttributes: Self.speedTextAttributes)
+        (self.cachedDownLine as NSString).draw(
+            in: downRect,
+            withAttributes: Self.speedTextAttributes)
     }
 
     private static func makeBrandStatusIconImage(size: CGFloat) -> NSImage? {
