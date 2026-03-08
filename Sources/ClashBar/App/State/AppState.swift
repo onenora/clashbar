@@ -77,6 +77,7 @@ final class AppState: ObservableObject {
     @Published var activeMenuTab: RootTab = .proxy
     @Published var launchAtLoginEnabled: Bool = false
     @Published var launchAtLoginErrorMessage: String?
+    @Published var latestAppReleaseInfo: AppReleaseInfo?
     @Published private(set) var menuBarDisplaySnapshot = MenuBarDisplay(
         mode: .iconOnly,
         symbolName: "bolt.slash.circle",
@@ -322,6 +323,8 @@ final class AppState: ObservableObject {
     var activatedTabRefreshGeneration: Int = 0
     var configFileSignatureSnapshot: [String: String] = [:]
     var pendingConfigChangeRestart = false
+    var lastLatestAppReleaseCheckAt: Date?
+    var isLatestAppReleaseCheckInFlight = false
 
     let defaults = UserDefaults.standard
     @AppStorage("clashbar.auto.start.core") private var autoStartCore: Bool = false
@@ -350,6 +353,8 @@ final class AppState: ObservableObject {
     let streamDisconnectLogThrottleInterval: TimeInterval = 2
     let streamReconnectBaseDelayNanoseconds: UInt64 = 1_000_000_000
     let streamReconnectMaxDelayNanoseconds: UInt64 = 8_000_000_000
+    let latestAppReleaseRefreshInterval: TimeInterval = 6 * 60 * 60
+    let latestAppReleaseRetryInterval: TimeInterval = 30 * 60
     // DRY: shared defaults for latency/provider healthcheck endpoints.
     let defaultHealthcheckURL = "https://www.gstatic.com/generate_204"
     let defaultHealthcheckTimeoutMilliseconds = 5000

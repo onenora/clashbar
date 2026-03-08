@@ -136,6 +136,8 @@
 
 "ui.footer.core_mihomo" = "MIHOMO %@";
 "ui.footer.version" = "v%@";
+"ui.footer.version_update_help" = "Open release notes for v%@";
+"ui.footer.version_update_accessibility" = "Current version v%@. Update available v%@.";
 
 "ui.common.na" = "-";
 "ui.common.unknown" = "--";

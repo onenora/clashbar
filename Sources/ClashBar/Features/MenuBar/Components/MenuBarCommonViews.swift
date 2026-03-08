@@ -195,9 +195,7 @@ extension MenuBarRoot {
 
     var footerBar: some View {
         let mihomoRepositoryURL = URL(string: "https://github.com/MetaCubeX/mihomo")
-        let clashBarRepositoryURL = URL(string: "https://github.com/Sitoi/ClashBar")
         let mihomoSymbol = "antenna.radiowaves.left.and.right"
-        let gitHubSymbol = "chevron.left.forwardslash.chevron.right"
 
         return VStack(spacing: 0) {
             HStack(spacing: MenuBarLayoutTokens.hDense) {
@@ -208,14 +206,14 @@ extension MenuBarRoot {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .layoutPriority(1)
 
-                self.footerInfo(
-                    tr("ui.footer.version", self.appVersionText),
-                    url: clashBarRepositoryURL,
-                    iconSystemName: gitHubSymbol)
+                self.footerVersionInfo
                     .fixedSize(horizontal: true, vertical: false)
             }
             .menuRowPadding(vertical: MenuBarLayoutTokens.vDense + 2)
             .background(self.footerSurfaceBackground)
+        }
+        .task {
+            await self.appState.refreshLatestAppReleaseIfNeeded()
         }
     }
 
@@ -260,6 +258,50 @@ extension MenuBarRoot {
         .help(text)
     }
 
+    @ViewBuilder
+    var footerVersionInfo: some View {
+        if let update = self.appState.availableAppUpdate {
+            Link(destination: update.releaseURL) {
+                self.footerVersionUpdateLabel(update)
+            }
+            .buttonStyle(.plain)
+            .help(tr("ui.footer.version_update_help", update.displayVersion))
+            .accessibilityLabel(tr(
+                "ui.footer.version_update_accessibility",
+                self.appState.currentAppVersionText,
+                update.displayVersion))
+        } else {
+            self.footerInfo(
+                tr("ui.footer.version", self.appState.currentAppVersionText),
+                url: self.appState.appReleaseIndexURL,
+                iconSystemName: "chevron.left.forwardslash.chevron.right")
+        }
+    }
+
+    func footerVersionUpdateLabel(_ release: AppReleaseInfo) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: "arrow.down.circle.fill")
+                .font(.appSystem(size: 10, weight: .semibold))
+                .foregroundStyle(self.nativeAccent.opacity(0.95))
+
+            Text(tr("ui.footer.version", self.appState.currentAppVersionText))
+                .font(.appSystem(size: 11, weight: .medium))
+                .foregroundStyle(self.nativeSecondaryLabel)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+
+            Text(release.displayVersion)
+                .font(.appMonospaced(size: 10, weight: .bold))
+                .foregroundStyle(self.nativeAccent.opacity(0.95))
+                .lineLimit(1)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 1)
+                .background(
+                    Capsule(style: .continuous)
+                        .fill(self.nativeAccent.opacity(self.isDarkAppearance ? 0.24 : 0.14)))
+        }
+    }
+
     var statusColor: Color {
         switch appState.runtimeVisualStatus {
         case .runningHealthy: self.nativePositive.opacity(0.95)
@@ -284,11 +326,7 @@ extension MenuBarRoot {
     }
 
     var appVersionText: String {
-        let short = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
-        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
-        if let short, !short.isEmpty { return short }
-        if let build, !build.isEmpty { return build }
-        return "0.0.1"
+        self.appState.currentAppVersionText
     }
 
     func sortedProviderNodes(provider: String, detail: ProviderDetail?) -> [String] {
