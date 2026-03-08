@@ -389,7 +389,10 @@ extension MenuBarRoot {
             Image(systemName: symbol)
                 .font(.appSystem(size: 10, weight: .semibold))
                 .foregroundStyle(nativeTertiaryLabel)
-                .frame(width: 14, alignment: .center)
+                .frame(
+                    width: MenuBarLayoutTokens.rowLeadingIconColumnWidth,
+                    height: MenuBarLayoutTokens.rowLeadingIconSize,
+                    alignment: .center)
 
             Text(title)
                 .font(.appSystem(size: 12, weight: .bold))
@@ -408,6 +411,8 @@ extension MenuBarRoot {
             Spacer(minLength: 0)
             trailing()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, MenuBarLayoutTokens.hRow)
     }
 
     func nextHovered<T: Equatable>(current: T?, target: T, isHovering: Bool) -> T? {
@@ -459,7 +464,7 @@ extension MenuBarRoot {
                 .padding(.horizontal, 6)
                 .padding(.vertical, 4)
         } else {
-            VStack(spacing: 2) {
+            VStack(spacing: 0) {
                 ForEach(nodes, id: \.self) { node in
                     row(node)
                 }
