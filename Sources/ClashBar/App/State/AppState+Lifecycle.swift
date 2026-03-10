@@ -9,6 +9,7 @@ extension AppState {
         let refreshProxyGroupsAfterBootstrap: Bool
         let refreshSystemProxyBeforeOverlay: Bool
         let refreshSystemProxyAfterBootstrap: Bool
+        let autoTestGroupLatencies: Bool
     }
 
     func startCore(trigger: StartTrigger = .manual) async {
@@ -65,7 +66,8 @@ extension AppState {
                     providerTrigger: .start,
                     refreshProxyGroupsAfterBootstrap: false,
                     refreshSystemProxyBeforeOverlay: true,
-                    refreshSystemProxyAfterBootstrap: false))
+                    refreshSystemProxyAfterBootstrap: false,
+                    autoTestGroupLatencies: true))
         } catch {
             let errorMessage = self.coreErrorMessage(error)
             preserveLocalSettingsOnNextSync = false
@@ -141,7 +143,8 @@ extension AppState {
                     providerTrigger: trigger,
                     refreshProxyGroupsAfterBootstrap: true,
                     refreshSystemProxyBeforeOverlay: false,
-                    refreshSystemProxyAfterBootstrap: true))
+                    refreshSystemProxyAfterBootstrap: true,
+                    autoTestGroupLatencies: false))
         } catch {
             let errorMessage = self.coreErrorMessage(error)
             preserveLocalSettingsOnNextSync = false
@@ -178,6 +181,7 @@ extension AppState {
 
     func quitApp() async {
         self.prepareForTermination()
+        try? await applySystemProxy(enabled: false, host: controllerHost(), ports: .disabled)
         if processManager.isRunning {
             await processManager.stopAsync()
         }
@@ -186,12 +190,14 @@ extension AppState {
 
     func shutdownForTermination() {
         self.prepareForTermination()
+        systemProxyService.clearSystemProxyBlocking(timeout: 2.0)
         if processManager.isRunning {
             processManager.stop()
         }
     }
 
     private func prepareForTermination() {
+        defaults.set(isSystemProxyEnabled, forKey: systemProxyEnabledOnQuitKey)
         shouldResumeCoreAfterNetworkRecovery = false
         stopNetworkReachabilityMonitoring(resetState: true)
         stopConfigDirectoryMonitoring()
@@ -342,8 +348,15 @@ extension AppState {
 
         defaults.set(configPath, forKey: lastSuccessfulConfigPathKey)
         startupErrorMessage = nil
+        self.seedCoreFeatureRecoveryFromPersistedQuitState()
         await self.restoreCoreFeaturesAfterStartupIfNeeded()
         enforceNetworkManagedCorePolicyIfNeeded()
+
+        if options.autoTestGroupLatencies {
+            Task { [weak self] in
+                await self?.refreshAllGroupLatencies()
+            }
+        }
     }
 
     private func overlayApplyingPendingCoreFeatureRecovery(_ overlay: EditableSettingsSnapshot)
@@ -410,6 +423,17 @@ extension AppState {
                 message: self.tr("log.system_proxy.toggle_failed", self.systemProxyErrorMessage(error)))
             await self.refreshSystemProxyStatus()
         }
+    }
+
+    private func seedCoreFeatureRecoveryFromPersistedQuitState() {
+        let wasSystemProxyEnabled = defaults.bool(forKey: systemProxyEnabledOnQuitKey)
+        defaults.removeObject(forKey: systemProxyEnabledOnQuitKey)
+        guard wasSystemProxyEnabled else { return }
+        // Only seed when no in-flight recovery is already pending (e.g. from stop/restart).
+        guard pendingCoreFeatureRecoveryState == nil else { return }
+        pendingCoreFeatureRecoveryState = CoreFeatureRecoveryState(
+            systemProxyEnabled: true,
+            tunEnabled: false)
     }
 
     func restoreCoreFeaturesAfterStartupIfNeeded() async {
