@@ -70,6 +70,7 @@ final class AppState: ObservableObject {
     @Published var errorLogs: [AppErrorLogEntry] = []
     @Published var startupErrorMessage: String?
     @Published var coreActionState: CoreActionState = .idle
+    @Published var coreUpgradeState: CoreUpgradeState = .idle
     @Published var providerRefreshStatus: ProviderRefreshStatus = .idle
     @Published var uiLanguage: AppLanguage = .zhHans
     @Published var appearanceMode: AppAppearanceMode = .system
@@ -311,6 +312,7 @@ final class AppState: ObservableObject {
     var networkAutoStopTask: Task<Void, Never>?
     var networkAutoStartTask: Task<Void, Never>?
     var deferredEditableSettingsOverlayTask: Task<Void, Never>?
+    var coreUpgradeFeedbackClearTask: Task<Void, Never>?
     var configDirectoryMonitorTask: Task<Void, Never>?
     var trafficDecodeTask: Task<Void, Never>?
     var mihomoLogFlushTask: Task<Void, Never>?
@@ -323,7 +325,6 @@ final class AppState: ObservableObject {
     var activatedTabRefreshGeneration: Int = 0
     var configFileSignatureSnapshot: [String: String] = [:]
     var pendingConfigChangeRestart = false
-    var lastLatestAppReleaseCheckAt: Date?
     var isLatestAppReleaseCheckInFlight = false
 
     let defaults = UserDefaults.standard
@@ -353,8 +354,6 @@ final class AppState: ObservableObject {
     let streamDisconnectLogThrottleInterval: TimeInterval = 2
     let streamReconnectBaseDelayNanoseconds: UInt64 = 1_000_000_000
     let streamReconnectMaxDelayNanoseconds: UInt64 = 8_000_000_000
-    let latestAppReleaseRefreshInterval: TimeInterval = 6 * 60 * 60
-    let latestAppReleaseRetryInterval: TimeInterval = 30 * 60
     // DRY: shared defaults for latency/provider healthcheck endpoints.
     let defaultHealthcheckURL = "https://www.gstatic.com/generate_204"
     let defaultHealthcheckTimeoutMilliseconds = 5000
@@ -378,6 +377,9 @@ final class AppState: ObservableObject {
     var remoteConfigSources: [String: String] = [:]
     var externalControllerWarningKeys: Set<String> = []
     let streamJSONDecoder = JSONDecoder()
+    let initialNoCoreSetupGuideShownKey = "clashbar.core.install.guide.shown.v1"
+    let bundlesMihomoCore: Bool
+    var didPresentInitialNoCoreSetupGuide = false
 
     init(
         processManager: (any MihomoControlling)? = nil,
@@ -402,6 +404,7 @@ final class AppState: ObservableObject {
         self.clashbarLogStore = clashbarLogStore
         self.mihomoLogStore = mihomoLogStore
         self.configManager = configManager ?? ConfigDirectoryManager(workingDirectoryManager: workingDirectoryManager)
+        self.bundlesMihomoCore = Self.resolveBundledMihomoCoreFlag()
         self.uiLanguage = loadPersistedUILanguage()
         self.appearanceMode = loadPersistedAppearanceMode()
         applyAppAppearance()
@@ -474,8 +477,10 @@ final class AppState: ObservableObject {
             self.startConfigDirectoryMonitoringIfNeeded()
         }
         if startBackgroundRefresh, self.autoStartCore {
-            Task { [weak self] in
-                await self?.attemptAutoStartIfNeeded()
+            if !self.shouldDeferAutoStartForMissingManagedCore() {
+                Task { [weak self] in
+                    await self?.attemptAutoStartIfNeeded()
+                }
             }
         }
 
@@ -499,5 +504,19 @@ final class AppState: ObservableObject {
             webSocketTask.cancel(with: .goingAway, reason: nil)
         }
         providerRefreshTask?.cancel()
+    }
+
+    private static func resolveBundledMihomoCoreFlag() -> Bool {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "ClashBarBundlesMihomoCore") else {
+            return true
+        }
+
+        if let number = value as? NSNumber {
+            return number.boolValue
+        }
+        if let string = value as? String {
+            return NSString(string: string).boolValue
+        }
+        return true
     }
 }

@@ -138,6 +138,17 @@
 "ui.footer.version" = "v%@";
 "ui.footer.version_update_help" = "Open release notes for v%@";
 "ui.footer.version_update_accessibility" = "Current version v%@. Update available v%@.";
+"ui.footer.core_upgrade.running" = "Updating...";
+"ui.footer.core_upgrade.success" = "Updated";
+"ui.footer.core_upgrade.latest" = "Up to Date";
+"ui.footer.core_upgrade.failed" = "Update Failed";
+"ui.footer.core_upgrade.help" = "Check for and upgrade the mihomo core";
+"ui.footer.core_upgrade.help.disabled" = "The core must be running to upgrade";
+"ui.footer.core_upgrade.help.running" = "Checking for and upgrading the mihomo core";
+"ui.footer.core_upgrade.help.success" = "The core upgrade request finished";
+"ui.footer.core_upgrade.help.latest" = "The core is already on the latest version";
+"ui.footer.core_upgrade.help.latest_version" = "The core is already on the latest version %@";
+"ui.footer.core_upgrade.help.failed" = "Core upgrade failed: %@";
 
 "ui.common.na" = "-";
 "ui.common.unknown" = "--";
@@ -175,7 +186,7 @@
 "app.system_proxy.error.helper_recovery_failed" = "Failed to recover privileged helper: %@";
 "app.system_proxy.error.helper_connection_failed" = "Failed to connect privileged helper: %@";
 "app.system_proxy.error.helper_operation_failed" = "Privileged helper operation failed: %@";
-"app.tun.error.binary_not_found" = "mihomo binary not found. Rebuild or reinstall ClashBar.";
+"app.tun.error.binary_not_found" = "No mihomo core was found. Copy an executable named \"mihomo\" to %@ first.";
 "app.tun.error.permission_missing" = "TUN mode requires root + setuid permissions on mihomo binary.";
 "app.tun.error.authorization_cancelled" = "Administrator authorization was cancelled.";
 "app.tun.error.authorization_failed" = "Failed to grant TUN permissions: %@";
@@ -213,6 +224,9 @@
 "app.core.alert.start_failed.title" = "Core Start Failed";
 "app.core.alert.restart_failed.title" = "Core Restart Failed";
 "app.core.alert.process_terminated.title" = "Core Terminated Unexpectedly";
+"app.core.error.binary_not_found" = "No mihomo core was found. Copy an executable named \"mihomo\" to %@, then start ClashBar Core again.";
+"app.core.setup_required.title" = "Install Mihomo Core";
+"app.core.setup_required.message" = "This build does not bundle mihomo. Before first use, copy an executable named \"mihomo\" into:\n%@\n\nClashBar will load the core from that folder.";
 
 "log.process.terminated" = "mihomo terminated with code %d";
 "log.working_dir_init_failed" = "Failed to initialize working directory: %@";
@@ -236,6 +250,10 @@
 "log.config.remote.update_summary" = "Subscription update completed: %d succeeded, %d failed";
 "log.config.show_in_finder.failed" = "Failed to open config directory in Finder: %@";
 "log.core.show_in_finder.failed" = "Failed to open core directory in Finder: %@";
+"log.core_upgrade.updated" = "Core upgrade request finished";
+"log.core_upgrade.latest" = "Core is already on the latest version";
+"log.core_upgrade.latest_version" = "Core is already on the latest version (%@)";
+"log.core_upgrade.failed" = "Core upgrade failed: %@";
 "log.config.validate_failed" = "Config validation failed (%@): %@";
 "log.system_proxy.toggled" = "System proxy %@";
 "log.system_proxy.enabled" = "enabled";
