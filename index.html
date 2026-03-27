@@ -6,1804 +6,1669 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0"
     />
-    <title>ClashBar</title>
+    <title>ClashBar | 轻量、原生、稳定的 macOS 菜单栏代理工具</title>
     <meta
       name="description"
-      content="ClashBar is a native macOS menu bar proxy utility powered by mihomo."
+      content="轻量、原生、稳定的 macOS 菜单栏代理工具。ClashBar 由 mihomo 驱动，APP 大小仅 2.7MB，打开菜单栏就能用。"
     />
-    <style>
-      :root {
-        --page-bg: #061018;
-        --page-bg-deep: #040c13;
-        --panel: rgba(255, 255, 255, 0.06);
-        --panel-strong: rgba(255, 255, 255, 0.1);
-        --panel-glass: rgba(14, 24, 34, 0.74);
-        --border: rgba(255, 255, 255, 0.09);
-        --border-strong: rgba(157, 228, 255, 0.24);
-        --text: #f4fbff;
-        --muted: rgba(226, 237, 245, 0.72);
-        --accent-a: #9de4ff;
-        --accent-b: #83a8ff;
-        --accent-c: #6df2d0;
-        --shadow: 0 30px 90px rgba(0, 0, 0, 0.34);
-        --shadow-strong: 0 48px 140px rgba(0, 0, 0, 0.46);
-        --radius-xl: 32px;
-        --radius-lg: 22px;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                bg: '#030712',
+                deep: '#02040a',
+                text: '#f8fafc',
+                muted: '#94a3b8',
+                accentA: '#38bdf8',
+                accentB: '#818cf8',
+                accentC: '#34d399',
+              },
+            },
+            boxShadow: {
+              header: '0 4px 24px -6px rgba(0, 0, 0, 0.4)',
+              panel:
+                '0 0 0 1px rgba(255,255,255,0.05), 0 12px 32px -8px rgba(0,0,0,0.4)',
+              'panel-strong':
+                '0 0 0 1px rgba(255,255,255,0.1), 0 24px 48px -12px rgba(56, 189, 248, 0.15)',
+              glow: '0 0 32px 0 rgba(56, 189, 248, 0.3)',
+            },
+            fontFamily: {
+              sans: [
+                'Inter',
+                'SF Pro Text',
+                'SF Pro Display',
+                '-apple-system',
+                'BlinkMacSystemFont',
+                'sans-serif',
+              ],
+              mono: [
+                'JetBrains Mono',
+                'SF Mono',
+                'ui-monospace',
+                'Menlo',
+                'monospace',
+              ],
+            },
+          },
+        },
       }
-
+    </script>
+    <style>
       * {
         box-sizing: border-box;
       }
-
       html,
       body {
         margin: 0;
         padding: 0;
         min-height: 100%;
       }
-
       html {
         scroll-behavior: smooth;
       }
 
       body {
-        font-family:
-          'SF Pro Text',
-          'SF Pro Display',
-          -apple-system,
-          BlinkMacSystemFont,
-          'Segoe UI',
-          sans-serif;
-        color: var(--text);
+        background-color: #030712;
+        color: #f8fafc;
         position: relative;
         overflow-x: hidden;
-        background:
-          radial-gradient(
-            circle at 8% -10%,
-            rgba(131, 168, 255, 0.26),
-            transparent 34%
-          ),
-          radial-gradient(
-            circle at 88% 0%,
-            rgba(157, 228, 255, 0.18),
-            transparent 32%
-          ),
-          radial-gradient(
-            circle at 52% 100%,
-            rgba(109, 242, 208, 0.08),
-            transparent 30%
-          ),
-          linear-gradient(
-            180deg,
-            #09141f 0%,
-            var(--page-bg) 52%,
-            var(--page-bg-deep) 100%
-          );
       }
 
-      body::before,
+      body::before {
+        content: '';
+        position: fixed;
+        top: -20%;
+        left: 50%;
+        width: 100vw;
+        height: 80vh;
+        transform: translateX(-50%);
+        background: radial-gradient(
+          circle,
+          rgba(56, 189, 248, 0.08) 0%,
+          transparent 70%
+        );
+        z-index: -2;
+        pointer-events: none;
+      }
+
       body::after {
         content: '';
         position: fixed;
         inset: 0;
-        pointer-events: none;
-        z-index: -2;
-      }
-
-      body::before {
-        background:
-          radial-gradient(
-            circle at 18% 18%,
-            rgba(138, 208, 235, 0.12),
-            transparent 24%
-          ),
-          radial-gradient(
-            circle at 82% 22%,
-            rgba(131, 168, 255, 0.12),
-            transparent 22%
-          ),
-          radial-gradient(
-            circle at 50% 72%,
-            rgba(109, 242, 208, 0.05),
-            transparent 28%
-          );
-        filter: blur(18px);
-      }
-
-      body::after {
         z-index: -1;
         background-image:
-          linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
-          linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.028) 1px,
-            transparent 1px
-          );
-        background-size: 46px 46px;
+          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        background-size: 64px 64px;
         mask-image: linear-gradient(
           180deg,
-          rgba(0, 0, 0, 0.34),
-          transparent 72%
+          rgba(0, 0, 0, 1) 0%,
+          transparent 80%
         );
+        pointer-events: none;
       }
 
-      .page-shell {
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 18px 28px 24px;
+      .text-gradient {
+        background: linear-gradient(135deg, #e0f2fe 0%, #38bdf8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
 
-      /* ===== Header Optimized ===== */
-      .site-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: sticky;
-        top: 16px;
-        z-index: 30;
-        gap: 16px;
-        margin-bottom: 48px;
-        padding: 14px 18px;
-        border: 1px solid rgba(157, 228, 255, 0.12);
-        border-radius: 26px;
-        background: rgba(10, 18, 28, 0.68);
-        backdrop-filter: blur(18px);
-        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
-      }
-
-      .brand-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-        color: var(--text);
-        text-decoration: none;
-        font-weight: 700;
-        font-size: 1.08rem;
-        letter-spacing: -0.02em;
-        flex-shrink: 0;
-      }
-
-      .brand-link img {
-        width: 34px;
-        height: 34px;
-        filter: drop-shadow(0 0 18px rgba(138, 208, 235, 0.28));
-      }
-
-      .header-nav {
-        display: none;
-      }
-
-      .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-      }
-
-      .language-toggle {
-        border: 1px solid var(--border);
-        background: var(--panel);
-        color: var(--muted);
-        border-radius: 999px;
-        padding: 10px 14px;
-        font-size: 13px;
-        font-weight: 520;
-        line-height: 1;
-        cursor: pointer;
-        transition:
-          border-color 180ms ease,
-          color 180ms ease,
-          background-color 180ms ease,
-          box-shadow 180ms ease,
-          transform 180ms ease;
-      }
-
-      .language-toggle:hover {
-        color: var(--text);
-        border-color: rgba(157, 228, 255, 0.32);
-        background: rgba(255, 255, 255, 0.1);
-      }
-
-      .language-toggle:focus-visible {
-        outline: 2px solid var(--accent-a);
-        outline-offset: 3px;
-        color: var(--text);
-        border-color: rgba(157, 228, 255, 0.4);
-      }
-
-      .hero {
-        display: grid;
-        grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-        gap: 28px;
-        align-items: center;
-        min-height: calc(100vh - 120px);
-        margin-bottom: 56px;
-      }
-
-      .hero-copy {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-
-      .hero-copy h1 {
-        margin: 10px 0 18px;
-        font-size: clamp(3rem, 5.6vw, 5.35rem);
-        line-height: 0.93;
-        letter-spacing: -0.055em;
-        max-width: 11ch;
-      }
-
-      .eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin: 0;
-        padding: 8px 12px;
-        color: var(--accent-a);
-        font-size: 0.74rem;
-        letter-spacing: 0.15em;
-        font-weight: 650;
-        text-transform: uppercase;
-        border: 1px solid rgba(157, 228, 255, 0.12);
-        border-radius: 999px;
-        background: rgba(157, 228, 255, 0.07);
-      }
-
-      .hero-copy p {
-        margin: 0;
-        color: var(--muted);
-        max-width: 50ch;
-        line-height: 1.68;
-        font-size: 1.04rem;
-      }
-
-      .hero-stage {
-        width: min(100%, 440px);
-        margin-left: auto;
-      }
-
-      .hero-shot {
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        box-shadow: 0 24px 54px rgba(0, 0, 0, 0.28);
-      }
-
-      .hero-shot img {
-        width: 100%;
-        height: auto;
-        display: block;
-        object-fit: contain;
-        object-position: center top;
-      }
-
-      .hero-meta-list {
-        margin: 18px 0 0;
-        padding: 0;
-        list-style: none;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-      }
-
-      .hero-meta-item {
-        border: 1px solid var(--border);
-        background: rgba(8, 18, 28, 0.72);
-        border-radius: 14px;
-        padding: 10px 12px;
-        backdrop-filter: blur(14px);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-      }
-
-      .hero-meta-item strong {
-        display: block;
-        font-size: 0.97rem;
-      }
-
-      .hero-meta-item span {
-        color: var(--muted);
-        font-size: 0.8rem;
-      }
-
-      .hero-actions {
-        margin-top: 26px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
+      html[lang='en'] .hero-title-wrap {
+        font-size: clamp(2.5rem, 5vw, 4.5rem);
+        letter-spacing: -0.04em;
       }
 
       html.reveal-enabled [data-reveal] {
         opacity: 0;
-        transform: translateY(22px);
+        transform: translateY(24px);
         transition:
-          opacity 520ms ease,
-          transform 520ms ease;
+          opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+          transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
       }
-
       html.reveal-enabled [data-reveal].is-visible {
         opacity: 1;
         transform: translateY(0);
       }
 
-      .cta {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-        text-decoration: none;
-        font-weight: 610;
-        padding: 12px 18px;
-        border: 1px solid transparent;
-        transition:
-          transform 180ms ease,
-          box-shadow 180ms ease,
-          border-color 180ms ease,
-          background-color 180ms ease,
-          color 180ms ease;
+      .bento-card {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.03) 0%,
+          rgba(255, 255, 255, 0.01) 100%
+        );
+        backdrop-filter: blur(12px);
+        transition: all 0.3s ease;
+      }
+      .bento-card:hover {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.05) 0%,
+          rgba(255, 255, 255, 0.02) 100%
+        );
+        transform: translateY(-2px);
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+      #features .bento-grid {
+        gap: 0.875rem;
+        grid-auto-rows: minmax(124px, auto);
+      }
+      #features .bento-grid > .bento-card {
+        padding: 1rem;
+      }
+      @media (min-width: 1024px) {
+        #features .bento-grid {
+          grid-auto-rows: minmax(118px, auto);
+        }
       }
 
-      .cta-primary {
-        color: #021019;
-        background: linear-gradient(135deg, var(--accent-a), var(--accent-b));
-      }
-
-      .cta-secondary {
-        color: var(--text);
-        background: var(--panel);
-        border-color: var(--border);
-      }
-
-      .proof-strip {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 16px;
-        margin: 0 0 96px;
-      }
-
-      .proof-strip article,
-      .feature-card {
+      .runtime-chart {
         position: relative;
         overflow: hidden;
-        border: 1px solid rgba(157, 228, 255, 0.1);
-        background: linear-gradient(
-          160deg,
-          rgba(255, 255, 255, 0.08),
-          rgba(9, 19, 29, 0.82)
-        );
-        border-radius: var(--radius-lg);
-        box-shadow: 0 26px 70px rgba(0, 0, 0, 0.28);
-        backdrop-filter: blur(18px);
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.02) 0%,
+            rgba(255, 255, 255, 0.01) 100%
+          ),
+          rgba(0, 0, 0, 0.4);
+        padding: 0.75rem;
       }
-
-      .proof-strip article::before,
-      .feature-card::before,
-      .quick-start::before,
-      .faq::before,
-      .final-cta::before {
+      .runtime-chart::before {
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+        background-size:
+          100% 25%,
+          16.666% 100%;
+        mask-image: linear-gradient(
           180deg,
-          rgba(255, 255, 255, 0.035),
-          transparent 40%
+          rgba(0, 0, 0, 0.8) 0%,
+          rgba(0, 0, 0, 0.35) 100%
         );
         pointer-events: none;
       }
-
-      .proof-strip article {
-        padding: 20px;
-        min-height: 150px;
-        display: grid;
-        align-content: start;
-        gap: 10px;
-        transition:
-          transform 220ms ease,
-          box-shadow 220ms ease,
-          border-color 220ms ease,
-          background-color 220ms ease;
-      }
-
-      .proof-strip article:nth-child(1) {
-        border-color: rgba(157, 228, 255, 0.18);
-      }
-
-      .proof-strip article:nth-child(2) {
-        border-color: rgba(131, 168, 255, 0.2);
-      }
-
-      .proof-strip article:nth-child(3) {
-        border-color: rgba(109, 242, 208, 0.16);
-      }
-
-      .proof-strip article:nth-child(4) {
-        border-color: rgba(183, 200, 219, 0.18);
-      }
-
-      .proof-strip h3 {
-        margin: 0 0 8px;
-        font-size: 1.02rem;
-        letter-spacing: -0.01em;
-      }
-
-      .proof-strip p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.5;
-        font-size: 0.9rem;
-      }
-
-      .feature-showcase {
-        display: grid;
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-        auto-rows: minmax(168px, auto);
-        gap: 18px;
-        margin-bottom: 96px;
-      }
-
-      .feature-card {
-        grid-column: span 3;
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        padding: 22px;
-        min-height: 190px;
-        transition:
-          transform 220ms ease,
-          box-shadow 220ms ease,
-          border-color 220ms ease,
-          background-color 220ms ease;
-      }
-
-      .feature-card-main {
-        grid-column: span 8;
-        grid-row: span 2;
-        min-height: 260px;
-        padding: 22px;
-        background:
-          radial-gradient(
-            circle at 18% 18%,
-            rgba(157, 228, 255, 0.12),
-            transparent 22%
-          ),
-          linear-gradient(
-            160deg,
-            rgba(255, 255, 255, 0.08),
-            rgba(9, 19, 29, 0.82)
-          );
-      }
-
-      .feature-card-nodes {
-        grid-column: span 4;
-        grid-row: span 2;
-        min-height: 260px;
-      }
-
-      .feature-card-logs {
-        grid-column: span 7;
-      }
-
-      .feature-card-connections {
-        grid-column: span 5;
-      }
-
-      .feature-card-config {
-        grid-column: span 3;
-      }
-
-      .feature-card-proxy {
-        grid-column: span 2;
-      }
-
-      .feature-card-rules {
-        grid-column: span 4;
-      }
-
-      .feature-card-tun {
-        grid-column: span 3;
-      }
-
-      .feature-card h2,
-      .feature-card h3 {
-        margin: 0;
-        letter-spacing: -0.04em;
-        line-height: 0.98;
-      }
-
-      .feature-card h2 {
-        font-size: clamp(2rem, 3.5vw, 3.15rem);
-      }
-
-      .feature-card h3 {
-        font-size: 1.12rem;
-      }
-
-      .feature-card p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.56;
-        font-size: 0.92rem;
-        max-width: 34ch;
-      }
-
-      .feature-card-main p,
-      .feature-card-nodes p {
-        font-size: 0.98rem;
-        max-width: 38ch;
-      }
-
-      .feature-topline {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 16px;
-      }
-
-      .feature-metric-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-        margin-top: 10px;
-      }
-
-      .feature-metric {
-        padding: 12px 14px;
-        border-radius: 16px;
-        border: 1px solid rgba(157, 228, 255, 0.1);
-        background: rgba(5, 12, 18, 0.34);
-      }
-
-      .feature-metric strong {
+      .runtime-chart svg {
+        position: relative;
+        z-index: 1;
         display: block;
-        color: var(--text);
-        font-size: 1.34rem;
-        letter-spacing: -0.04em;
+        width: 100%;
+        height: 72px;
       }
-
-      .feature-metric span {
-        display: block;
-        margin-top: 4px;
-        color: var(--muted);
-        font-size: 0.72rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
+      .runtime-chart path,
+      .runtime-chart polyline,
+      .runtime-chart circle {
+        vector-effect: non-scaling-stroke;
       }
-
-      .feature-bars {
-        display: flex;
-        align-items: flex-end;
-        gap: 6px;
-        min-height: 80px;
-        margin-top: auto;
-      }
-
-      .feature-bars span {
-        flex: 1;
-        border-radius: 999px 999px 4px 4px;
-        background: linear-gradient(
-          180deg,
-          rgba(157, 228, 255, 0.92),
-          rgba(58, 133, 157, 0.22)
-        );
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      }
-
-      .feature-bars span:nth-child(1) {
-        height: 32%;
-        opacity: 0.42;
-      }
-      .feature-bars span:nth-child(2) {
-        height: 46%;
-        opacity: 0.5;
-      }
-      .feature-bars span:nth-child(3) {
-        height: 36%;
-        opacity: 0.46;
-      }
-      .feature-bars span:nth-child(4) {
-        height: 58%;
-        opacity: 0.64;
-      }
-      .feature-bars span:nth-child(5) {
-        height: 52%;
-        opacity: 0.56;
-      }
-      .feature-bars span:nth-child(6) {
-        height: 79%;
-        opacity: 0.84;
-      }
-      .feature-bars span:nth-child(7) {
-        height: 74%;
-        opacity: 0.76;
-      }
-      .feature-bars span:nth-child(8) {
-        height: 90%;
-      }
-      .feature-bars span:nth-child(9) {
-        height: 84%;
-        opacity: 0.9;
-      }
-      .feature-bars span:nth-child(10) {
-        height: 62%;
-        opacity: 0.72;
-      }
-      .feature-bars span:nth-child(11) {
-        height: 44%;
-        opacity: 0.58;
-      }
-      .feature-bars span:nth-child(12) {
-        height: 28%;
-        opacity: 0.44;
-      }
-
-      .feature-status-row {
+      .runtime-chart-legend {
+        position: relative;
+        z-index: 1;
+        margin-top: 0.5rem;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding-top: 14px;
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
-        color: var(--muted);
-        font-size: 0.72rem;
-        letter-spacing: 0.12em;
+        gap: 0.75rem;
+        color: #94a3b8;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
       }
-
+      .runtime-chart-series {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .runtime-chart-dot {
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 999px;
+      }
+      .runtime-chart-dot.download {
+        background: #38bdf8;
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+      }
+      .runtime-chart-dot.upload {
+        background: #34d399;
+        box-shadow: 0 0 12px rgba(52, 211, 153, 0.45);
+      }
       .feature-dot {
         display: inline-block;
         width: 8px;
         height: 8px;
-        border-radius: 999px;
-        background: var(--accent-a);
-        box-shadow: 0 0 12px rgba(157, 228, 255, 0.48);
-      }
-
-      .node-list {
-        display: grid;
-        gap: 10px;
-        margin-top: auto;
-      }
-
-      .node-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 12px 14px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        background: rgba(255, 255, 255, 0.03);
-      }
-
-      .node-item.is-active {
-        border-color: rgba(109, 242, 208, 0.24);
-        background: rgba(109, 242, 208, 0.08);
-      }
-
-      .node-meta {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .node-indicator {
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.24);
-      }
-
-      .node-item.is-active .node-indicator {
-        background: var(--accent-c);
-        box-shadow: 0 0 12px rgba(109, 242, 208, 0.4);
-      }
-
-      .node-label {
-        color: var(--text);
-        font-size: 0.88rem;
-        font-weight: 520;
-      }
-
-      .node-latency {
-        color: var(--accent-c);
-        font-size: 0.76rem;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-      }
-
-      .feature-searchbar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 12px 14px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        background: rgba(0, 0, 0, 0.16);
-        color: var(--muted);
-        font-size: 0.84rem;
-      }
-
-      .feature-searchbar span {
-        color: var(--text);
-        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-        font-size: 0.78rem;
-      }
-
-      .log-lines {
-        display: grid;
-        gap: 8px;
-        margin-top: auto;
-        font-size: 0.78rem;
-        line-height: 1.42;
-        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        border-radius: 50%;
+        background: #38bdf8;
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
       }
 
       .log-lines span:nth-child(1) {
-        color: rgba(109, 242, 208, 0.88);
+        color: #34d399;
       }
       .log-lines span:nth-child(2) {
-        color: var(--muted);
+        color: #94a3b8;
       }
       .log-lines span:nth-child(3) {
-        color: rgba(255, 180, 171, 0.86);
-      }
-
-      .audit-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 18px;
-        margin-top: auto;
+        color: #fb7185;
       }
 
       .audit-pulse {
         position: relative;
-        width: 52px;
-        height: 52px;
-        border-radius: 999px;
-        background: rgba(255, 180, 171, 0.08);
-        border: 1px solid rgba(255, 180, 171, 0.18);
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: rgba(251, 113, 133, 0.1);
       }
-
-      .audit-pulse::before,
-      .audit-pulse::after {
+      .audit-pulse::before {
         content: '';
         position: absolute;
         inset: 50%;
-        border-radius: 999px;
         transform: translate(-50%, -50%);
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #fb7185;
+        box-shadow: 0 0 14px rgba(251, 113, 133, 0.8);
       }
-
-      .audit-pulse::before {
-        width: 12px;
-        height: 12px;
-        background: rgba(255, 180, 171, 0.92);
-        box-shadow: 0 0 14px rgba(255, 180, 171, 0.5);
-      }
-
       .audit-pulse::after {
-        width: 34px;
+        content: '';
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        border: 1px solid rgba(251, 113, 133, 0.3);
+        animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+      }
+      @keyframes ping {
+        75%,
+        100% {
+          transform: scale(1.5);
+          opacity: 0;
+        }
+      }
+
+      .rule-stack span {
+        flex: 1;
+        border-radius: 4px 4px 0 0;
+        background: linear-gradient(
+          180deg,
+          rgba(129, 140, 248, 0.8),
+          rgba(129, 140, 248, 0.1)
+        );
+      }
+      .rule-stack span:nth-child(1) {
+        height: 18px;
+        opacity: 0.3;
+      }
+      .rule-stack span:nth-child(2) {
         height: 34px;
-        border: 1px solid rgba(255, 180, 171, 0.2);
+        opacity: 0.5;
       }
-
-      .audit-flag {
-        color: rgba(255, 180, 171, 0.92);
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
+      .rule-stack span:nth-child(3) {
+        height: 58px;
+        opacity: 1;
       }
-
-      .config-tags {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: auto;
+      .rule-stack span:nth-child(4) {
+        height: 26px;
+        opacity: 0.4;
       }
-
-      .config-tags span {
-        display: inline-flex;
-        align-items: center;
-        min-height: 24px;
-        padding: 0 10px;
-        border-radius: 999px;
-        border: 1px solid rgba(157, 228, 255, 0.14);
-        background: rgba(157, 228, 255, 0.08);
-        color: var(--text);
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+      .rule-stack span:nth-child(5) {
+        height: 42px;
+        opacity: 0.6;
       }
 
       .proxy-toggle {
         position: relative;
         width: 44px;
         height: 24px;
-        margin-top: auto;
         border-radius: 999px;
-        border: 1px solid rgba(157, 228, 255, 0.18);
-        background: rgba(157, 228, 255, 0.12);
+        background: #34d399;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
       }
-
       .proxy-toggle::after {
         content: '';
         position: absolute;
         top: 2px;
         right: 2px;
-        width: 18px;
-        height: 18px;
-        border-radius: 999px;
-        background: linear-gradient(135deg, var(--accent-a), var(--accent-b));
-        box-shadow: 0 0 16px rgba(131, 168, 255, 0.34);
-      }
-
-      .proxy-label {
-        margin-top: auto;
-        color: var(--muted);
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-      }
-
-      .rule-stack {
-        display: flex;
-        align-items: flex-end;
-        gap: 6px;
-        min-height: 76px;
-        margin-top: auto;
-      }
-
-      .rule-stack span {
-        flex: 1;
-        border-radius: 999px 999px 4px 4px;
-        background: linear-gradient(
-          180deg,
-          rgba(131, 168, 255, 0.86),
-          rgba(131, 168, 255, 0.16)
-        );
-      }
-
-      .rule-stack span:nth-child(1) {
-        height: 18px;
-        opacity: 0.36;
-      }
-      .rule-stack span:nth-child(2) {
-        height: 34px;
-        opacity: 0.52;
-      }
-      .rule-stack span:nth-child(3) {
-        height: 58px;
-      }
-      .rule-stack span:nth-child(4) {
-        height: 26px;
-        opacity: 0.42;
-      }
-      .rule-stack span:nth-child(5) {
-        height: 42px;
-        opacity: 0.66;
-      }
-
-      .rule-count {
-        display: inline-flex;
-        align-items: baseline;
-        gap: 8px;
-        margin-top: auto;
-      }
-
-      .rule-count strong {
-        color: var(--text);
-        font-size: 1.4rem;
-        letter-spacing: -0.05em;
-      }
-
-      .rule-count span {
-        color: var(--muted);
-        font-size: 0.72rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-      }
-
-      .permission-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: auto;
-        padding: 10px 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(109, 242, 208, 0.16);
-        background: rgba(109, 242, 208, 0.08);
-        color: var(--text);
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-      }
-
-      .permission-pill::before {
-        content: '';
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: var(--accent-c);
-        box-shadow: 0 0 12px rgba(109, 242, 208, 0.44);
-      }
-
-      .quick-start,
-      .faq,
-      .final-cta {
-        margin-bottom: 96px;
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(157, 228, 255, 0.1);
-        border-radius: var(--radius-lg);
-        background: linear-gradient(
-          160deg,
-          rgba(255, 255, 255, 0.07),
-          rgba(6, 16, 24, 0.78)
-        );
-        box-shadow: 0 26px 70px rgba(0, 0, 0, 0.28);
-        padding: 40px;
-        backdrop-filter: blur(18px);
-      }
-
-      .section-kicker {
-        margin: 0 0 10px;
-        color: var(--accent-a);
-        font-size: 0.78rem;
-        letter-spacing: 0.14em;
-        font-weight: 650;
-        text-transform: uppercase;
-      }
-
-      .quick-start h2,
-      .faq h2,
-      .final-cta h2 {
-        margin: 0 0 18px;
-        letter-spacing: -0.02em;
-        font-size: clamp(1.8rem, 3vw, 2.4rem);
-      }
-
-      .quick-steps {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        counter-reset: quick-steps;
-        color: var(--muted);
-        line-height: 1.65;
-        display: grid;
-        gap: 12px;
-      }
-
-      .quick-steps li {
-        position: relative;
-        min-height: 48px;
-        padding: 6px 0 6px 54px;
-      }
-
-      .quick-steps li::before {
-        counter-increment: quick-steps;
-        content: counter(quick-steps);
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 36px;
-        height: 36px;
-        display: grid;
-        place-items: center;
-        border-radius: 12px;
-        color: #061018;
-        font-weight: 700;
-        background: linear-gradient(135deg, var(--accent-a), var(--accent-b));
-        box-shadow: 0 10px 24px rgba(131, 168, 255, 0.18);
-      }
-
-      .faq-list {
-        display: grid;
-        gap: 12px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       }
 
       .faq details {
-        border: 1px solid rgba(157, 228, 255, 0.08);
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.03);
-        padding: 14px 16px;
-        transition:
-          border-color 180ms ease,
-          background-color 180ms ease;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 20px 0;
       }
-
-      .faq details[open] {
-        border-color: rgba(157, 228, 255, 0.2);
-        background: rgba(157, 228, 255, 0.05);
-      }
-
       .faq summary {
         cursor: pointer;
-        color: var(--text);
-        font-weight: 560;
         list-style: none;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
+        font-weight: 500;
+        font-size: 1.05rem;
+        transition: color 0.2s;
       }
-
+      .faq summary::-webkit-details-marker {
+        display: none;
+      }
       .faq summary::after {
         content: '+';
-        color: var(--accent-a);
-        font-size: 1rem;
-        font-weight: 700;
-        flex-shrink: 0;
-        transition: transform 180ms ease;
+        color: #94a3b8;
+        font-size: 1.5rem;
+        transition: transform 0.3s ease;
       }
-
       .faq details[open] summary::after {
         transform: rotate(45deg);
+        color: #38bdf8;
       }
-
+      .faq details[open] summary {
+        color: #f8fafc;
+      }
       .faq-answer {
-        margin-top: 12px;
-        display: grid;
-        gap: 10px;
-        color: var(--muted);
-        line-height: 1.62;
+        margin-top: 16px;
+        color: #94a3b8;
+        line-height: 1.7;
+        font-size: 0.95rem;
       }
-
-      .faq-answer p,
-      .faq-answer ul {
-        margin: 0;
-      }
-
-      .faq-answer ul {
-        display: grid;
-        padding-left: 18px;
-        gap: 8px;
-      }
-
-      .faq-answer strong {
-        color: var(--text);
-        font-weight: 600;
-      }
-
-      .faq-answer code {
-        padding: 1px 6px;
-        border-radius: 999px;
-        background: rgba(157, 228, 255, 0.08);
-        color: var(--text);
-        font-family:
-          'SF Mono', 'SFMono-Regular', ui-monospace, Menlo, Monaco, Consolas,
-          monospace;
-        font-size: 0.92em;
-      }
-
       .faq-answer a {
-        color: var(--accent-a);
+        color: #38bdf8;
         text-decoration: none;
       }
-
-      .faq-answer a:hover,
-      .faq-answer a:focus-visible {
+      .faq-answer a:hover {
         text-decoration: underline;
       }
-
-      .final-cta {
-        text-align: center;
-        background:
-          radial-gradient(
-            circle at 50% 0%,
-            rgba(157, 228, 255, 0.1),
-            transparent 32%
-          ),
-          linear-gradient(
-            160deg,
-            rgba(255, 255, 255, 0.07),
-            rgba(6, 16, 24, 0.78)
-          );
+      .faq-answer code {
+        background: rgba(255, 255, 255, 0.08);
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: #e2e8f0;
+        font-family: monospace;
+        font-size: 0.9em;
       }
 
-      .final-cta p {
-        margin: 0 auto;
-        color: var(--muted);
+      .quick-steps {
+        list-style: none;
+        counter-reset: steps;
+        margin: 0;
+        padding: 0;
+        position: relative;
+      }
+      .quick-steps::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 10px;
+        bottom: 10px;
+        width: 2px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .quick-steps li {
+        position: relative;
+        padding-left: 48px;
+        margin-bottom: 24px;
+        color: #94a3b8;
         line-height: 1.6;
-        max-width: 48ch;
       }
-
-      .final-cta-actions {
-        margin-top: 24px;
+      .quick-steps li:last-child {
+        margin-bottom: 0;
+      }
+      .quick-steps li::before {
+        counter-increment: steps;
+        content: counter(steps);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #030712;
+        border: 2px solid #38bdf8;
+        color: #38bdf8;
         display: flex;
         align-items: center;
         justify-content: center;
-        flex-wrap: wrap;
-        gap: 12px 16px;
-      }
-
-      .text-link {
-        color: var(--accent-a);
-        text-decoration: none;
-        font-weight: 550;
-      }
-
-      .text-link:hover {
-        text-decoration: underline;
-      }
-
-      /* ===== Footer Optimized ===== */
-      .site-footer {
-        padding-top: 36px;
-        border-top: 1px solid var(--border);
-        color: var(--muted);
+        font-weight: bold;
         font-size: 0.9rem;
-      }
-
-      .footer-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 24px;
-      }
-
-      .footer-brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-weight: 600;
-        color: var(--text);
-      }
-
-      .footer-brand img {
-        width: 24px;
-        height: 24px;
-        opacity: 0.8;
-      }
-
-      .footer-links {
-        display: flex;
-        gap: 24px;
-        flex-wrap: wrap;
-      }
-
-      .footer-links a {
-        color: var(--muted);
-        text-decoration: none;
-        transition: color 180ms ease;
-        font-weight: 500;
-      }
-
-      .footer-links a:hover {
-        color: var(--accent-a);
-      }
-
-      .footer-bottom {
-        margin-top: 36px;
-        padding-top: 24px;
-        border-top: 1px solid rgba(255, 255, 255, 0.04);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 0.82rem;
-        opacity: 0.6;
-      }
-
-      /* ===== Anchor offset for sticky header ===== */
-      #features,
-      #quick-start,
-      #faq {
-        scroll-margin-top: 120px;
-      }
-
-      /* ===== States & Interactions ===== */
-      .cta:hover,
-      .cta:focus-visible {
-        transform: translateY(-2px);
-        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
-      }
-
-      .cta:focus-visible,
-      .feature-card:focus-visible,
-      .proof-strip article:focus-visible,
-      .faq summary:focus-visible {
-        outline: 2px solid var(--accent-a);
-        outline-offset: 3px;
-      }
-
-      .feature-card:hover,
-      .feature-card:focus-visible,
-      .feature-card:focus-within,
-      .proof-strip article:hover,
-      .proof-strip article:focus-visible,
-      .proof-strip article:focus-within {
-        transform: translateY(-4px);
-        border-color: rgba(157, 228, 255, 0.28);
-        box-shadow: 0 36px 90px rgba(0, 0, 0, 0.36);
-      }
-
-      .faq summary:focus-visible {
-        border-radius: 8px;
-      }
-
-      .faq summary:hover {
-        color: var(--accent-a);
-      }
-
-      /* ===== Media Queries ===== */
-      @media (min-width: 768px) {
-        .header-nav {
-          display: flex;
-          gap: 28px;
-          align-items: center;
-        }
-
-        .header-nav a {
-          color: var(--muted);
-          text-decoration: none;
-          font-size: 0.92rem;
-          font-weight: 500;
-          transition: color 180ms ease;
-        }
-
-        .header-nav a:hover {
-          color: var(--text);
-        }
-      }
-
-      @media (max-width: 960px) {
-        .page-shell {
-          padding: 20px 16px 40px;
-        }
-
-        .hero {
-          grid-template-columns: 1fr;
-          min-height: auto;
-        }
-
-        .hero-copy {
-          order: 1;
-        }
-
-        .hero-stage {
-          order: 2;
-          margin: 0 auto;
-          width: min(100%, 440px);
-        }
-
-        .proof-strip {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .feature-showcase {
-          grid-template-columns: repeat(6, minmax(0, 1fr));
-        }
-
-        .feature-card {
-          grid-column: span 3;
-          min-height: 200px;
-        }
-
-        .feature-card-primary {
-          grid-column: span 6;
-          grid-row: auto;
-          min-height: auto;
-        }
-
-        .quick-start,
-        .faq,
-        .final-cta {
-          padding: 30px 22px;
-        }
-      }
-
-      @media (max-width: 640px) {
-        .hero-copy h1 {
-          font-size: clamp(2.4rem, 11vw, 3.4rem);
-        }
-
-        .proof-strip {
-          grid-template-columns: 1fr;
-        }
-
-        .feature-showcase {
-          grid-template-columns: 1fr;
-        }
-
-        .feature-card {
-          grid-column: auto;
-          min-height: auto;
-        }
-
-        .footer-content {
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-        }
-
-        .footer-links {
-          justify-content: center;
-        }
-
-        .footer-bottom {
-          flex-direction: column;
-          gap: 12px;
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        html {
-          scroll-behavior: auto;
-        }
-
-        *,
-        *::before,
-        *::after {
-          animation: none !important;
-          transition: none !important;
-        }
-
-        [data-reveal] {
-          opacity: 1 !important;
-          transform: none !important;
-        }
+        z-index: 1;
       }
     </style>
   </head>
   <body
+    class="font-sans antialiased"
     data-release-url="https://github.com/Sitoi/ClashBar/releases"
-    data-repo-url="https://github.com/Sitoi/ClashBar"
-    data-issues-url="https://github.com/Sitoi/ClashBar/issues"
     data-telegram-url="https://t.me/clashbars"
-    data-hero-image="./imgs/clashbar-black.png"
-    data-feature-image="./imgs/clashbar-light.png"
-    data-logo-image="./imgs/logo.png"
   >
-    <div class="page-shell">
-      <header class="site-header">
+    <div class="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 pb-10 pt-6">
+      <!-- Header -->
+      <header
+        class="sticky top-4 z-50 flex items-center justify-between rounded-2xl border border-white/10 bg-black/40 px-5 py-3 shadow-header backdrop-blur-xl transition-all"
+      >
         <a
-          class="brand-link"
+          class="flex items-center gap-3 text-lg font-semibold tracking-tight text-white no-underline transition hover:opacity-80"
           href="https://github.com/Sitoi/ClashBar"
         >
           <img
+            class="h-8 w-8"
             src="./imgs/logo.png"
-            alt="ClashBar 标志"
+            alt="ClashBar Logo"
             data-copy-alt="brand.logoAlt"
           />
           <span>ClashBar</span>
         </a>
-
-        <nav
-          class="header-nav"
-          aria-label="Main Navigation"
-        >
+        <nav class="hidden items-center gap-8 md:flex">
           <a
+            class="text-sm font-medium text-brand-muted transition hover:text-white"
             href="#features"
             data-copy="header.features"
             >功能</a
           >
           <a
+            class="text-sm font-medium text-brand-muted transition hover:text-white"
             href="#quick-start"
             data-copy="header.quickStart"
             >快速开始</a
           >
           <a
+            class="text-sm font-medium text-brand-muted transition hover:text-white"
             href="#faq"
             data-copy="header.faq"
             >常见问题</a
           >
         </nav>
-
-        <div class="header-actions">
-          <button
-            type="button"
-            class="language-toggle"
-            aria-pressed="false"
-          >
-            EN / 中文
-          </button>
-        </div>
+        <button
+          type="button"
+          class="language-toggle rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-brand-muted transition hover:bg-white/10 hover:text-white"
+        >
+          EN / 中文
+        </button>
       </header>
 
       <main>
+        <!-- Hero Section -->
         <section
           id="hero"
-          class="hero"
+          class="mt-20 mb-28 grid items-center gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:gap-10"
         >
-          <div class="hero-copy">
-            <p
-              class="eyebrow"
+          <div
+            class="flex flex-col items-start max-w-2xl"
+            data-reveal
+          >
+            <div
+              class="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-accentA/20 bg-brand-accentA/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-brand-accentA"
               data-copy="hero.eyebrow"
-              data-reveal
             >
-              原生 macOS 代理工具
-            </p>
+              面向 macOS 的原生菜单栏代理工具
+            </div>
             <h1
-              data-copy="hero.title"
-              data-reveal
+              class="hero-title-wrap text-5xl sm:text-6xl font-bold leading-[1.1] tracking-tight text-white mb-6"
             >
-              轻量、原生，菜单栏一开就能用。
+              <span
+                class="block"
+                data-copy="hero.titleLineOne"
+                >轻量、原生、稳定</span
+              >
+              <span
+                class="text-gradient block mt-2"
+                data-copy="hero.titleLineTwo"
+                >菜单栏一开就能用</span
+              >
             </h1>
             <p
+              class="mb-8 text-lg leading-relaxed text-brand-muted"
               data-copy="hero.body"
-              data-reveal
             >
-              由 mihomo 驱动的原生 macOS
-              菜单栏代理工具，专注轻量、稳定与可观察的运行体验。
+              ClashBar 基于 mihomo
+              构建，聚焦原生菜单栏体验、轻量交付与长期稳定运行。应用本体仅
+              2.7MB，适合快速安装、轻量启动与日常常驻。
             </p>
             <div
-              class="hero-actions"
-              data-reveal
+              class="mb-8 flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
             >
               <a
-                class="cta cta-primary"
+                class="w-full sm:w-auto inline-flex h-12 items-center justify-center rounded-xl bg-brand-text px-8 text-sm font-semibold text-brand-bg transition hover:bg-white hover:scale-105 shadow-glow"
                 href="https://github.com/Sitoi/ClashBar/releases"
                 data-copy="hero.primaryCta"
-                >从 Releases 下载</a
+                >下载最新版本</a
               >
               <a
-                class="cta cta-secondary"
+                class="w-full sm:w-auto inline-flex h-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-8 text-sm font-semibold text-white transition hover:bg-white/10"
                 href="https://github.com/Sitoi/ClashBar"
                 data-copy="hero.secondaryCta"
-                >前往 GitHub</a
+                >查看 GitHub</a
               >
             </div>
-            <ul
-              class="hero-meta-list"
-              aria-label="ClashBar 首屏说明"
-              data-copy-aria-label="hero.proofListLabel"
-              data-reveal
+
+            <div
+              class="w-full rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6 shadow-panel backdrop-blur-xl"
             >
-              <li class="hero-meta-item">
-                <strong>18.4 MB</strong>
-                <span data-copy="hero.proofSizeLabel">应用体积</span>
-              </li>
-              <li class="hero-meta-item">
-                <strong>SwiftPM</strong>
-                <span data-copy="hero.proofBuildLabel">构建方式</span>
-              </li>
-              <li class="hero-meta-item">
-                <strong>mihomo</strong>
-                <span data-copy="hero.proofCoreLabel">驱动内核</span>
-              </li>
-              <li class="hero-meta-item">
-                <strong>macOS 13+</strong>
-                <span data-copy="hero.proofPlatformLabel">平台要求</span>
-              </li>
-            </ul>
+              <div
+                class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"
+              >
+                <div>
+                  <span
+                    class="inline-flex mb-3 items-center rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-yellow-400"
+                    data-copy="hero.sizeLabel"
+                    >极致轻量</span
+                  >
+                  <div class="flex items-end gap-2 text-white">
+                    <span
+                      class="text-5xl sm:text-6xl font-extrabold tracking-tighter leading-none"
+                      >2.7</span
+                    >
+                    <span
+                      class="pb-1 text-lg sm:text-xl font-semibold text-yellow-400"
+                      >MB</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="max-w-sm text-sm leading-relaxed text-brand-muted"
+                  data-copy="hero.sizeBody"
+                >
+                  对菜单栏工具来说，体积不只是数字，也意味着更低的下载成本、启动负担和常驻压力。更克制的体积，带来更无感的体验。
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-brand-muted"
+            >
+              <div class="flex items-center gap-2">
+                <svg
+                  class="w-4 h-4 text-brand-accentA"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                SwiftUI + AppKit
+              </div>
+              <div class="flex items-center gap-2">
+                <svg
+                  class="w-4 h-4 text-brand-accentA"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                基于 mihomo
+              </div>
+              <div class="flex items-center gap-2">
+                <svg
+                  class="w-4 h-4 text-brand-accentA"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+                macOS 13+
+              </div>
+            </div>
           </div>
+          <!-- Hero Image -->
           <div
-            class="hero-stage"
+            class="relative w-full max-w-[300px] sm:max-w-[340px] lg:max-w-[420px] xl:max-w-[460px] mx-auto lg:ml-auto"
             data-reveal
           >
-            <div class="hero-shot">
-              <img
-                src="./imgs/clashbar-black.png"
-                alt="ClashBar 深色界面应用截图"
-                width="812"
-                height="1570"
-                data-copy-alt="hero.imageAlt"
-              />
-            </div>
+            <div
+              class="absolute inset-0 bg-brand-accentA/20 blur-[80px] rounded-full scale-90"
+            ></div>
+            <img
+              class="relative z-10 block h-auto w-full object-contain filter drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+              src="./imgs/clashbar-black.png"
+              alt="ClashBar 深色界面"
+              data-copy-alt="hero.imageAlt"
+            />
           </div>
         </section>
 
+        <!-- Features Bento Grid (极致紧凑的 100% 完美拼图) -->
         <section
           id="features"
-          class="feature-showcase"
-          aria-label="ClashBar 功能展示"
-          data-copy-aria-label="features.sectionLabel"
+          class="mb-24 scroll-mt-24"
         >
-          <article
-            class="feature-card feature-card-main"
+          <div
+            class="text-center mb-12"
             data-reveal
-            tabindex="0"
           >
-            <div class="feature-topline">
-              <div>
-                <h2 data-copy="features.runtime.title">运行态指标</h2>
-                <p data-copy="features.runtime.body">
-                  实时速率、连接数、内存占用和当前模式会持续可见。
+            <h2
+              class="text-3xl md:text-4xl font-bold tracking-tight text-white mb-3"
+              data-copy="features.board.title"
+            >
+              原生菜单栏控制台
+            </h2>
+            <p
+              class="text-brand-muted max-w-2xl mx-auto text-sm"
+              data-copy="features.board.body"
+            >
+              把配置导入、节点切换、系统代理和排障视图收束到一个紧凑的原生面板里。
+            </p>
+          </div>
+
+          <!-- 桌面端改为 8 列，按主卡优先级固定尺寸，其余卡片补位 -->
+          <div
+            class="bento-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 auto-rows-[minmax(140px,auto)] gap-4"
+            aria-label="ClashBar 功能展示"
+          >
+            <!-- 1. 运行态指标 (4x2): 左上角主视觉 -->
+            <article
+              class="bento-card relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/10 p-5 md:col-span-2 md:row-span-2 lg:col-span-4 lg:row-span-2 lg:col-start-1 lg:row-start-1"
+              data-reveal
+            >
+              <div
+                class="absolute -top-20 -left-20 w-64 h-64 bg-brand-accentA/20 blur-[80px] rounded-full pointer-events-none"
+              ></div>
+              <div class="relative z-10">
+                <h3
+                  class="text-lg font-semibold tracking-tight text-white mb-1"
+                  data-copy="features.runtime.title"
+                >
+                  运行态指标
+                </h3>
+                <p
+                  class="text-[12px] text-brand-muted max-w-none sm:whitespace-nowrap"
+                  data-copy="features.runtime.body"
+                >
+                  上下行速率、连接数、内存占用和当前模式。
                 </p>
               </div>
-            </div>
-            <div class="feature-metric-grid">
-              <div class="feature-metric">
-                <strong>1.2 MB/s</strong>
-                <span data-copy="features.runtime.rateLabel">实时速率</span>
+              <div class="relative z-10 mt-4">
+                <div class="grid grid-cols-2 gap-2.5 mb-3">
+                  <div
+                    class="rounded-xl bg-black/40 p-2.5 border border-white/5"
+                  >
+                    <strong class="block text-xl font-bold text-white"
+                      >1.2
+                      <span class="text-xs text-brand-muted">MB/s</span></strong
+                    >
+                    <span
+                      class="text-[10px] uppercase tracking-wider text-brand-muted mt-1 block"
+                      data-copy="features.runtime.rateLabel"
+                      >实时速率</span
+                    >
+                  </div>
+                  <div
+                    class="rounded-xl bg-black/40 p-2.5 border border-white/5"
+                  >
+                    <strong class="block text-xl font-bold text-white"
+                      >48.2
+                      <span class="text-xs text-brand-muted">MB</span></strong
+                    >
+                    <span
+                      class="text-[10px] uppercase tracking-wider text-brand-muted mt-1 block"
+                      data-copy="features.runtime.memoryLabel"
+                      >内存占用</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="runtime-chart"
+                  aria-hidden="true"
+                >
+                  <svg
+                    viewBox="0 0 240 92"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      d="M10 70C22 62 34 46 46 44C58 42 70 54 82 49C94 44 106 22 118 24C130 26 142 40 154 38C166 36 178 18 190 20C202 22 214 34 230 28V92H10V70Z"
+                      fill="url(#runtime-download-fill)"
+                    />
+                    <path
+                      d="M10 80C22 76 34 68 46 66C58 64 70 72 82 70C94 68 106 56 118 58C130 60 142 66 154 64C166 62 178 48 190 50C202 52 214 62 230 58V92H10V80Z"
+                      fill="url(#runtime-upload-fill)"
+                    />
+                    <polyline
+                      points="10,70 46,44 82,49 118,24 154,38 190,20 230,28"
+                      stroke="#38BDF8"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <polyline
+                      points="10,80 46,66 82,70 118,58 154,64 190,50 230,58"
+                      stroke="#34D399"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <circle
+                      cx="190"
+                      cy="20"
+                      r="4"
+                      fill="#38BDF8"
+                    />
+                    <circle
+                      cx="190"
+                      cy="20"
+                      r="8"
+                      fill="#38BDF8"
+                      fill-opacity="0.12"
+                    />
+                    <circle
+                      cx="190"
+                      cy="50"
+                      r="4"
+                      fill="#34D399"
+                    />
+                    <circle
+                      cx="190"
+                      cy="50"
+                      r="8"
+                      fill="#34D399"
+                      fill-opacity="0.12"
+                    />
+                    <defs>
+                      <linearGradient
+                        id="runtime-download-fill"
+                        x1="0"
+                        y1="18"
+                        x2="0"
+                        y2="92"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop
+                          stop-color="#38BDF8"
+                          stop-opacity="0.25"
+                        />
+                        <stop
+                          offset="1"
+                          stop-color="#38BDF8"
+                          stop-opacity="0"
+                        />
+                      </linearGradient>
+                      <linearGradient
+                        id="runtime-upload-fill"
+                        x1="0"
+                        y1="44"
+                        x2="0"
+                        y2="92"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop
+                          stop-color="#34D399"
+                          stop-opacity="0.2"
+                        />
+                        <stop
+                          offset="1"
+                          stop-color="#34D399"
+                          stop-opacity="0"
+                        />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div class="runtime-chart-legend">
+                    <span class="runtime-chart-series"
+                      ><span class="runtime-chart-dot download"></span
+                      ><span data-copy="features.runtime.downloadLabel"
+                        >下行</span
+                      ></span
+                    >
+                    <span class="runtime-chart-series"
+                      ><span class="runtime-chart-dot upload"></span
+                      ><span data-copy="features.runtime.uploadLabel"
+                        >上行</span
+                      ></span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="mt-3 border-t border-white/5 pt-2.5 flex items-center justify-between text-[10px] text-brand-muted uppercase tracking-wider font-semibold"
+                >
+                  <span class="flex items-center gap-2"
+                    ><span class="feature-dot w-1.5 h-1.5"></span
+                    ><span data-copy="features.runtime.connLabel"
+                      >42 Connections</span
+                    ></span
+                  >
+                  <span data-copy="features.runtime.modeLabel">Rule Mode</span>
+                </div>
               </div>
-              <div class="feature-metric">
-                <strong>48.2 MB</strong>
-                <span data-copy="features.runtime.memoryLabel">内存占用</span>
-              </div>
-            </div>
-            <div
-              class="feature-bars"
-              aria-hidden="true"
+            </article>
+
+            <!-- 2. 节点切换 (2x2): 宽版节点列表 -->
+            <article
+              class="bento-card relative flex flex-col overflow-hidden rounded-3xl border border-white/10 p-5 md:col-span-1 md:row-span-2 lg:col-span-2 lg:row-span-2 lg:col-start-3 lg:row-start-3"
+              data-reveal
             >
-              <span></span><span></span><span></span><span></span> <span></span
-              ><span></span><span></span><span></span> <span></span><span></span
-              ><span></span><span></span>
-            </div>
-            <div class="feature-status-row">
-              <span><span class="feature-dot"></span> 42 Connections</span>
-              <span>Rule Mode</span>
-            </div>
-          </article>
+              <div class="mb-4">
+                <h3
+                  class="text-lg font-semibold tracking-tight text-white mb-1"
+                  data-copy="features.nodes.title"
+                >
+                  节点切换
+                </h3>
+              </div>
+              <div class="flex flex-col gap-1.5 flex-1 justify-end">
+                <div
+                  class="flex items-center justify-between rounded-lg bg-brand-accentC/10 border border-brand-accentC/20 px-3 py-1.5"
+                >
+                  <div class="flex items-center gap-2 overflow-hidden">
+                    <span
+                      class="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-accentC glow"
+                    ></span
+                    ><span class="text-xs font-medium text-white truncate"
+                      >HK-Premium</span
+                    >
+                  </div>
+                  <span
+                    class="text-[10px] font-bold text-brand-accentC shrink-0"
+                    >24ms</span
+                  >
+                </div>
+                <div
+                  class="flex items-center justify-between rounded-lg bg-white/5 border border-white/5 px-3 py-1.5 opacity-80"
+                >
+                  <div class="flex items-center gap-2 overflow-hidden">
+                    <span
+                      class="h-1.5 w-1.5 shrink-0 rounded-full bg-white/20"
+                    ></span
+                    ><span class="text-xs font-medium text-white truncate"
+                      >TW-Taipei</span
+                    >
+                  </div>
+                  <span class="text-[10px] font-bold text-brand-muted shrink-0"
+                    >31ms</span
+                  >
+                </div>
+                <div
+                  class="flex items-center justify-between rounded-lg bg-white/5 border border-white/5 px-3 py-1.5 opacity-80"
+                >
+                  <div class="flex items-center gap-2 overflow-hidden">
+                    <span
+                      class="h-1.5 w-1.5 shrink-0 rounded-full bg-white/20"
+                    ></span
+                    ><span class="text-xs font-medium text-white truncate"
+                      >SG-Direct</span
+                    >
+                  </div>
+                  <span class="text-[10px] font-bold text-brand-muted shrink-0"
+                    >48ms</span
+                  >
+                </div>
+                <div
+                  class="flex items-center justify-between rounded-lg bg-white/5 border border-white/5 px-3 py-1.5 opacity-80"
+                >
+                  <div class="flex items-center gap-2 overflow-hidden">
+                    <span
+                      class="h-1.5 w-1.5 shrink-0 rounded-full bg-white/20"
+                    ></span
+                    ><span class="text-xs font-medium text-white truncate"
+                      >KR-Seoul</span
+                    >
+                  </div>
+                  <span class="text-[10px] font-bold text-brand-muted shrink-0"
+                    >56ms</span
+                  >
+                </div>
+                <div
+                  class="flex items-center justify-between rounded-lg bg-white/5 border border-white/5 px-3 py-1.5 opacity-75"
+                >
+                  <div class="flex items-center gap-2 overflow-hidden">
+                    <span
+                      class="h-1.5 w-1.5 shrink-0 rounded-full bg-white/20"
+                    ></span
+                    ><span class="text-xs font-medium text-white truncate"
+                      >JP-Low</span
+                    >
+                  </div>
+                  <span class="text-[10px] font-bold text-brand-muted shrink-0"
+                    >89ms</span
+                  >
+                </div>
+                <div
+                  class="flex items-center justify-between rounded-lg bg-white/5 border border-white/5 px-3 py-1.5 opacity-75"
+                >
+                  <div class="flex items-center gap-2 overflow-hidden">
+                    <span
+                      class="h-1.5 w-1.5 shrink-0 rounded-full bg-white/20"
+                    ></span
+                    ><span class="text-xs font-medium text-white truncate"
+                      >MY-Burst</span
+                    >
+                  </div>
+                  <span class="text-[10px] font-bold text-brand-muted shrink-0"
+                    >112ms</span
+                  >
+                </div>
+                <div
+                  class="flex items-center justify-between rounded-lg bg-white/5 border border-white/5 px-3 py-1.5 opacity-70"
+                >
+                  <div class="flex items-center gap-2 overflow-hidden">
+                    <span
+                      class="h-1.5 w-1.5 shrink-0 rounded-full bg-white/20"
+                    ></span
+                    ><span class="text-xs font-medium text-white truncate"
+                      >US-Global</span
+                    >
+                  </div>
+                  <span class="text-[10px] font-bold text-brand-muted shrink-0"
+                    >162ms</span
+                  >
+                </div>
+                <div
+                  class="flex items-center justify-between rounded-lg bg-white/5 border border-white/5 px-3 py-1.5 opacity-65"
+                >
+                  <div class="flex items-center gap-2 overflow-hidden">
+                    <span
+                      class="h-1.5 w-1.5 shrink-0 rounded-full bg-white/20"
+                    ></span
+                    ><span class="text-xs font-medium text-white truncate"
+                      >DE-Edge</span
+                    >
+                  </div>
+                  <span class="text-[10px] font-bold text-brand-muted shrink-0"
+                    >189ms</span
+                  >
+                </div>
+              </div>
+            </article>
 
-          <article
-            class="feature-card feature-card-nodes"
-            data-reveal
-            tabindex="0"
-          >
-            <h3 data-copy="features.nodes.title">节点切换</h3>
-            <p data-copy="features.nodes.body">
-              分组切换、策略选择和延迟测试都集中在同一处。
-            </p>
-            <div class="node-list">
-              <div class="node-item is-active">
-                <div class="node-meta">
-                  <span class="node-indicator"></span>
-                  <span class="node-label">HK-Premium-01</span>
-                </div>
-                <span class="node-latency">24ms</span>
-              </div>
-              <div class="node-item">
-                <div class="node-meta">
-                  <span class="node-indicator"></span>
-                  <span class="node-label">SG-Direct-04</span>
-                </div>
-                <span class="node-latency">48ms</span>
-              </div>
-              <div class="node-item">
-                <div class="node-meta">
-                  <span class="node-indicator"></span>
-                  <span class="node-label">US-Global-12</span>
-                </div>
-                <span class="node-latency">162ms</span>
-              </div>
-              <div class="node-item">
-                <div class="node-meta">
-                  <span class="node-indicator"></span>
-                  <span class="node-label">JP-Low-02</span>
-                </div>
-                <span class="node-latency">89ms</span>
-              </div>
-            </div>
-          </article>
-
-          <article
-            class="feature-card feature-card-logs"
-            data-reveal
-            tabindex="0"
-          >
-            <h3 data-copy="features.debug.title">日志检索</h3>
-            <p data-copy="features.debug.body">
-              按级别过滤、关键词搜索并复制关键日志。
-            </p>
-            <div class="feature-searchbar">
-              <span data-copy="features.debug.searchLabel">筛选: mihomo</span>
-            </div>
-            <div
-              class="log-lines"
-              aria-hidden="true"
+            <!-- 3. 连接排障 (1x2): 置于主卡之间 -->
+            <article
+              class="bento-card relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/10 p-5 md:col-span-1 md:row-span-2 lg:col-span-1 lg:row-span-2 lg:col-start-5 lg:row-start-1"
+              data-reveal
             >
-              <span>14:22:01 connected HK-Premium-01</span>
-              <span>14:22:05 rule matched api.github.com</span>
-              <span>14:22:10 latency spike detected</span>
-            </div>
-          </article>
-
-          <article
-            class="feature-card feature-card-connections"
-            data-reveal
-            tabindex="0"
-          >
-            <h3 data-copy="features.connections.title">连接排障</h3>
-            <p data-copy="features.connections.body">
-              观察活动连接，并按需关闭单个或全部连接。
-            </p>
-            <div class="audit-row">
+              <div
+                class="absolute -bottom-10 -right-10 w-40 h-40 bg-red-500/10 blur-[60px] rounded-full pointer-events-none"
+              ></div>
               <div>
-                <div class="audit-flag">128 Active</div>
-                <p data-copy="features.connections.signalLabel">
-                  当前列表展示 3 条连接记录
+                <h3
+                  class="text-lg font-semibold tracking-tight text-white mb-1"
+                  data-copy="features.connections.title"
+                >
+                  连接排障
+                </h3>
+                <p
+                  class="text-[12px] text-brand-muted leading-snug"
+                  data-copy="features.connections.body"
+                >
+                  观察活动连接并按需关闭。
                 </p>
+              </div>
+              <div class="flex-1 flex items-center justify-center my-3">
+                <div class="audit-pulse scale-110"></div>
               </div>
               <div
-                class="audit-pulse"
-                aria-hidden="true"
+                class="relative z-10 rounded-xl bg-red-500/10 border border-red-500/20 p-2.5 backdrop-blur-md text-center"
+              >
+                <strong
+                  class="text-sm font-bold text-red-400 block leading-none"
+                  data-copy="features.connections.activeLabel"
+                  >128 Active</strong
+                >
+              </div>
+            </article>
+
+            <!-- 4. 规则视图 (3x2): 加宽后的规则统计面板 -->
+            <article
+              class="bento-card relative flex flex-col overflow-hidden rounded-3xl border border-white/10 p-5 md:col-span-1 md:row-span-2 lg:col-span-3 lg:row-span-2 lg:col-start-6 lg:row-start-1 group"
+              data-reveal
+            >
+              <div
+                class="absolute -bottom-16 -right-16 w-56 h-56 bg-brand-accentB/10 blur-[72px] rounded-full pointer-events-none"
               ></div>
-            </div>
-          </article>
+              <div class="relative z-10 mb-3">
+                <h3
+                  class="text-lg font-semibold tracking-tight text-white mb-1"
+                  data-copy="features.rules.title"
+                >
+                  规则视图
+                </h3>
+                <p
+                  class="text-[12px] text-brand-muted"
+                  data-copy="features.rules.body"
+                >
+                  快速查看规则总数、命中分布和常用规则类型。
+                </p>
+              </div>
+              <div class="relative z-10 mt-1 grid gap-2.5">
+                <div class="rounded-2xl border border-white/10 bg-black/30 p-3">
+                  <div class="flex items-end justify-between gap-4">
+                    <div>
+                      <strong
+                        class="text-4xl font-black text-white leading-none tracking-tighter"
+                        >4,285</strong
+                      >
+                      <div
+                        class="mt-1.5 text-[10px] uppercase tracking-[0.18em] text-brand-muted font-semibold"
+                        data-copy="features.rules.countLabel"
+                      >
+                        规则总数
+                      </div>
+                    </div>
+                    <div
+                      class="rule-stack flex h-16 w-20 shrink-0 items-end gap-1 opacity-80"
+                      aria-hidden="true"
+                    >
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <div
+                    class="rounded-xl border border-white/8 bg-white/[0.03] p-2.5"
+                  >
+                    <div
+                      class="text-[9px] text-brand-muted flex items-center justify-between gap-1"
+                    >
+                      <span class="flex items-center gap-1.5">
+                        <span
+                          class="w-1.5 h-1.5 rounded-full bg-brand-accentC"
+                        ></span
+                        >DIRECT
+                      </span>
+                      <span class="text-[10px] text-white font-bold">1.2k</span>
+                    </div>
+                    <div
+                      class="mt-1.5 h-1.5 w-full rounded-full bg-white/5 overflow-hidden"
+                    >
+                      <div
+                        class="h-full rounded-full bg-brand-accentC"
+                        style="width: 28%"
+                      ></div>
+                    </div>
+                  </div>
+                  <div
+                    class="rounded-xl border border-white/8 bg-white/[0.03] p-2.5"
+                  >
+                    <div
+                      class="text-[9px] text-brand-muted flex items-center justify-between gap-1"
+                    >
+                      <span class="flex items-center gap-1.5">
+                        <span
+                          class="w-1.5 h-1.5 rounded-full bg-brand-accentA"
+                        ></span
+                        >PROXY
+                      </span>
+                      <span class="text-[10px] text-white font-bold">2.8k</span>
+                    </div>
+                    <div
+                      class="mt-1.5 h-1.5 w-full rounded-full bg-white/5 overflow-hidden"
+                    >
+                      <div
+                        class="h-full rounded-full bg-brand-accentA"
+                        style="width: 65%"
+                      ></div>
+                    </div>
+                  </div>
+                  <div
+                    class="rounded-xl border border-white/8 bg-white/[0.03] p-2.5"
+                  >
+                    <div
+                      class="text-[9px] text-brand-muted flex items-center justify-between gap-1"
+                    >
+                      <span class="flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span
+                        >REJECT
+                      </span>
+                      <span class="text-[10px] text-white font-bold">285</span>
+                    </div>
+                    <div
+                      class="mt-1.5 h-1.5 w-full rounded-full bg-white/5 overflow-hidden"
+                    >
+                      <div
+                        class="h-full rounded-full bg-red-400"
+                        style="width: 7%"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <span
+                    class="rounded bg-white/5 border border-white/10 px-1.5 py-0.5 text-[9px] text-white font-mono"
+                    >DOMAIN-SUFFIX</span
+                  >
+                  <span
+                    class="rounded bg-white/5 border border-white/10 px-1.5 py-0.5 text-[9px] text-white font-mono"
+                    >IP-CIDR</span
+                  >
+                  <span
+                    class="rounded bg-white/5 border border-white/10 px-1.5 py-0.5 text-[9px] text-white font-mono"
+                    >GEOIP</span
+                  >
+                  <span
+                    class="rounded bg-white/5 border border-white/10 px-1.5 py-0.5 text-[9px] text-white font-mono"
+                    >MATCH</span
+                  >
+                </div>
+              </div>
+            </article>
 
-          <article
-            class="feature-card feature-card-config"
-            data-reveal
-            tabindex="0"
-          >
-            <h3 data-copy="features.config.title">配置导入</h3>
-            <p data-copy="features.config.body">
-              本地 YAML、远程订阅和批量更新都能从这里发起。
-            </p>
-            <div class="config-tags">
-              <span data-copy="features.config.badgeLocal">本地</span>
-              <span data-copy="features.config.badgeRemote">远程</span>
-            </div>
-          </article>
-
-          <article
-            class="feature-card feature-card-proxy"
-            data-reveal
-            tabindex="0"
-          >
-            <h3 data-copy="features.system.title">系统代理</h3>
-            <p data-copy="features.system.body">
-              开关系统代理、解析端口，并和登录项状态协同。
-            </p>
-            <div
-              class="proxy-toggle"
-              aria-hidden="true"
-            ></div>
-            <span
-              class="proxy-label"
-              data-copy="features.system.toggleLabel"
-              >已启用</span
+            <!-- 5. 运行模式 (2x2) -->
+            <article
+              class="bento-card relative flex flex-col overflow-hidden rounded-3xl border border-white/10 p-5 md:col-span-1 md:row-span-2 lg:col-span-2 lg:row-span-2 lg:col-start-1 lg:row-start-3"
+              data-reveal
             >
-          </article>
+              <div
+                class="absolute -top-10 -right-10 w-40 h-40 bg-brand-accentC/10 blur-[56px] rounded-full pointer-events-none"
+              ></div>
+              <div class="relative z-10 mb-4">
+                <div
+                  class="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-brand-muted"
+                  data-copy="features.mode.badge"
+                >
+                  模式
+                </div>
+                <h3
+                  class="text-lg font-semibold tracking-tight text-white mb-1"
+                  data-copy="features.mode.title"
+                >
+                  运行模式
+                </h3>
+                <p
+                  class="text-[13px] text-brand-muted"
+                  data-copy="features.mode.body"
+                >
+                  在菜单栏里快速切换 Rule、Global、Direct 三种模式。
+                </p>
+              </div>
+              <div class="relative z-10 flex-1 flex flex-col gap-3 justify-end">
+                <div
+                  class="rounded-2xl border border-brand-accentA/25 bg-brand-accentA/10 p-4 shadow-[0_0_24px_rgba(56,189,248,0.08)]"
+                >
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <div
+                        class="text-[12px] font-bold uppercase tracking-[0.18em] text-brand-accentA"
+                      >
+                        RULE
+                      </div>
+                      <div
+                        class="mt-1 text-sm font-medium text-white"
+                        data-copy="features.mode.rule"
+                      >
+                        规则匹配
+                      </div>
+                    </div>
+                    <span
+                      class="rounded-full border border-brand-accentA/30 bg-black/30 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-brand-accentA"
+                      data-copy="features.mode.activeLabel"
+                      >当前</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+                >
+                  <div
+                    class="text-[12px] font-bold uppercase tracking-[0.18em] text-white"
+                  >
+                    GLOBAL
+                  </div>
+                  <div
+                    class="mt-1 text-sm font-medium text-white"
+                    data-copy="features.mode.global"
+                  >
+                    全局代理
+                  </div>
+                </div>
+                <div
+                  class="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+                >
+                  <div
+                    class="text-[12px] font-bold uppercase tracking-[0.18em] text-white"
+                  >
+                    DIRECT
+                  </div>
+                  <div
+                    class="mt-1 text-sm font-medium text-white"
+                    data-copy="features.mode.direct"
+                  >
+                    全局直连
+                  </div>
+                </div>
+              </div>
+            </article>
 
-          <article
-            class="feature-card feature-card-rules"
-            data-reveal
-            tabindex="0"
-          >
-            <h3 data-copy="features.rules.title">规则视图</h3>
-            <p data-copy="features.rules.body">
-              快速查看规则统计、策略命中和规则侧信号。
-            </p>
-            <div
-              class="rule-stack"
-              aria-hidden="true"
+            <!-- 6. 系统代理 (1x1) -->
+            <article
+              class="bento-card relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/10 p-5 md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1 lg:col-start-5 lg:row-start-3"
+              data-reveal
             >
-              <span></span><span></span><span></span><span></span><span></span>
-            </div>
-            <div class="rule-count">
-              <strong>4.2k</strong>
-              <span data-copy="features.rules.countLabel">规则总数</span>
-            </div>
-          </article>
+              <div>
+                <h3
+                  class="text-base font-semibold tracking-tight text-white"
+                  data-copy="features.system.title"
+                >
+                  系统代理
+                </h3>
+              </div>
+              <div class="mt-auto flex items-end justify-between">
+                <span
+                  class="text-[11px] font-bold uppercase tracking-widest text-brand-accentC"
+                  data-copy="features.system.toggleLabel"
+                  >已启用</span
+                >
+                <div class="proxy-toggle"></div>
+              </div>
+            </article>
 
-          <article
-            class="feature-card feature-card-tun"
-            data-reveal
-            tabindex="0"
-          >
-            <h3 data-copy="features.tun.title">TUN 与权限</h3>
-            <p data-copy="features.tun.body">
-              权限检查、授权补齐和异常恢复都在这里收口。
-            </p>
-            <div
-              class="permission-pill"
-              data-copy="features.tun.statusLabel"
+            <!-- 7. TUN与权限 (1x1) -->
+            <article
+              class="bento-card relative flex flex-col justify-center items-center text-center overflow-hidden rounded-3xl border border-white/10 p-5 md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1 lg:col-start-6 lg:row-start-3"
+              data-reveal
             >
-              已授权
-            </div>
-          </article>
+              <div
+                class="mb-3 inline-flex items-center justify-center w-12 h-12 rounded-full bg-brand-accentC/10 border border-brand-accentC/20 relative"
+              >
+                <div
+                  class="absolute inset-0 bg-brand-accentC/20 blur-md rounded-full"
+                ></div>
+                <svg
+                  class="relative w-5 h-5 text-brand-accentC"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  ></path>
+                </svg>
+              </div>
+              <h3
+                class="text-[13px] font-semibold tracking-tight text-white"
+                data-copy="features.tun.title"
+              >
+                TUN 与权限
+              </h3>
+            </article>
+
+            <!-- 8. 配置导入 (1x1) -->
+            <article
+              class="bento-card relative flex flex-col justify-center items-center text-center overflow-hidden rounded-3xl border border-white/10 p-5 md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1 lg:col-start-5 lg:row-start-4"
+              data-reveal
+            >
+              <h3
+                class="text-[13px] font-semibold tracking-tight text-white mb-3"
+                data-copy="features.config.title"
+              >
+                配置导入
+              </h3>
+              <div class="flex flex-col gap-1.5 w-full max-w-[120px]">
+                <span
+                  class="rounded-full bg-brand-accentB/10 border border-brand-accentB/20 px-2 py-1 text-[10px] font-medium text-brand-accentB w-full shadow-[0_0_10px_rgba(129,140,248,0.2)]"
+                  data-copy="features.config.badgeLocal"
+                  >本地 YAML</span
+                >
+                <span
+                  class="rounded-full bg-white/5 border border-white/10 px-2 py-1 text-[10px] font-medium text-white w-full"
+                  data-copy="features.config.badgeRemote"
+                  >远程订阅</span
+                >
+              </div>
+            </article>
+
+            <!-- 9. 内核更换 (1x1) -->
+            <article
+              class="bento-card relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/10 p-5 md:col-span-1 md:row-span-1 lg:col-span-1 lg:row-span-1 lg:col-start-6 lg:row-start-4"
+              data-reveal
+            >
+              <div
+                class="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-brand-accentA/10 blur-[44px] pointer-events-none"
+              ></div>
+              <div class="relative z-10 flex h-full flex-col">
+                <div class="min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h3
+                      class="text-base font-semibold tracking-tight text-white whitespace-nowrap"
+                      data-copy="features.core.title"
+                    >
+                      内核更换
+                    </h3>
+                    <span
+                      class="shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-brand-muted"
+                      data-copy="features.core.badge"
+                      >手动</span
+                    >
+                  </div>
+                  <p
+                    class="mt-1 text-[10px] leading-snug text-brand-muted"
+                    data-copy="features.core.compactBody"
+                  >
+                    在 mihomo 与 smart 间手动切换。
+                  </p>
+                </div>
+                <div class="mt-3 flex flex-col gap-2">
+                  <div
+                    class="cursor-pointer rounded-xl border border-brand-accentA/20 bg-brand-accentA/10 p-2.5 shadow-[0_0_18px_rgba(56,189,248,0.08)] transition hover:border-brand-accentA/30 hover:bg-brand-accentA/15"
+                  >
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="min-w-0 flex items-center gap-2">
+                        <div
+                          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-brand-accentA/20 bg-black/30 text-[10px] font-black uppercase tracking-[0.12em] text-brand-accentA"
+                        >
+                          M
+                        </div>
+                        <div class="min-w-0">
+                          <div
+                            class="truncate font-mono text-[11px] font-semibold leading-none text-white"
+                          >
+                            mihomo
+                          </div>
+                          <div
+                            class="mt-1 text-[9px] uppercase tracking-[0.16em] text-brand-accentA"
+                            data-copy="features.mode.activeLabel"
+                          >
+                            当前
+                          </div>
+                        </div>
+                      </div>
+                      <span
+                        class="h-2 w-2 shrink-0 rounded-full bg-brand-accentA shadow-[0_0_10px_rgba(56,189,248,0.8)]"
+                      ></span>
+                    </div>
+                  </div>
+                  <div
+                    class="cursor-pointer rounded-xl border border-white/10 bg-white/[0.03] p-2.5 transition hover:border-white/15 hover:bg-white/[0.05]"
+                  >
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="min-w-0 flex items-center gap-2">
+                        <div
+                          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30 text-[10px] font-black uppercase tracking-[0.12em] text-white"
+                        >
+                          S
+                        </div>
+                        <div class="min-w-0">
+                          <div
+                            class="truncate font-mono text-[11px] font-semibold leading-none text-white"
+                          >
+                            smart
+                          </div>
+                          <div
+                            class="mt-1 text-[9px] uppercase tracking-[0.16em] text-brand-muted"
+                            data-copy="features.core.standbyLabel"
+                          >
+                            可切换
+                          </div>
+                        </div>
+                      </div>
+                      <span
+                        class="h-2 w-2 shrink-0 rounded-full bg-white/25"
+                      ></span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="mt-auto flex cursor-pointer items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/30 px-2.5 py-2 transition hover:border-brand-accentA/20 hover:bg-brand-accentA/10"
+                >
+                  <span
+                    class="text-[9px] font-semibold uppercase tracking-[0.16em] text-brand-muted"
+                    data-copy="features.core.switchLabel"
+                    >切换后重启</span
+                  >
+                  <span
+                    class="text-[10px] font-bold text-brand-accentA"
+                    data-copy="features.core.restartLabel"
+                    >重启</span
+                  >
+                </div>
+              </div>
+            </article>
+
+            <!-- 10. 日志检索 (2x1): 右侧窄卡 -->
+            <article
+              class="bento-card relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/10 p-5 md:col-span-2 md:row-span-1 lg:col-span-2 lg:row-span-1 lg:col-start-7 lg:row-start-3"
+              data-reveal
+            >
+              <div class="flex justify-between items-center mb-3">
+                <h3
+                  class="text-base font-semibold tracking-tight text-white"
+                  data-copy="features.debug.title"
+                >
+                  日志检索
+                </h3>
+                <div
+                  class="flex items-center gap-1.5 rounded-lg bg-white/5 px-2 py-1 text-[10px] text-brand-muted font-mono border border-white/10"
+                >
+                  <svg
+                    class="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    ></path>
+                  </svg>
+                  <span data-copy="features.debug.searchLabel"
+                    >筛选: mihomo</span
+                  >
+                </div>
+              </div>
+              <div
+                class="rounded-xl bg-black/50 border border-white/5 p-3 mt-auto"
+              >
+                <div
+                  class="log-lines grid gap-1 font-mono text-[10px] sm:text-[11px] opacity-80 leading-tight"
+                >
+                  <span>14:22:01 connected HK-Premium-01</span>
+                  <span>14:22:05 rule matched api.github.com</span>
+                  <span>14:22:10 latency spike detected</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- 11. 远程管理 (2x1): 右侧窄卡 -->
+            <article
+              class="bento-card relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/10 p-5 md:col-span-2 md:row-span-1 lg:col-span-2 lg:row-span-1 lg:col-start-7 lg:row-start-4"
+              data-reveal
+            >
+              <div
+                class="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/10 blur-[50px] rounded-full pointer-events-none"
+              ></div>
+              <div class="relative z-10 flex h-full flex-col gap-2.5">
+                <div>
+                  <h3
+                    class="text-base font-semibold tracking-tight text-white mb-0.5"
+                    data-copy="features.remote.title"
+                  >
+                    远程管理
+                  </h3>
+                  <p
+                    class="text-[11px] text-brand-muted leading-snug max-w-none"
+                    data-copy="features.remote.body"
+                  >
+                    轻松接管局域网或云端服务端。
+                  </p>
+                </div>
+                <div
+                  class="mt-auto w-full flex flex-col gap-2 rounded-xl bg-white/5 border border-white/10 p-2.5"
+                >
+                  <div
+                    class="flex items-center justify-between gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-2"
+                  >
+                    <div class="min-w-0 flex items-center gap-2.5">
+                      <div
+                        class="w-8 h-8 shrink-0 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center"
+                      >
+                        <svg
+                          class="w-4 h-4 text-emerald-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.5"
+                            d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+                          ></path>
+                        </svg>
+                      </div>
+                      <div class="min-w-0">
+                        <div
+                          class="text-[12px] font-medium text-white font-mono leading-none truncate"
+                        >
+                          192.168.31.10:9090
+                        </div>
+                        <div class="text-[10px] text-brand-muted mt-1 truncate">
+                          Home NAS / Docker
+                        </div>
+                      </div>
+                    </div>
+                    <span
+                      class="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]"
+                      aria-label="Remote host online"
+                    ></span>
+                  </div>
+                  <div
+                    class="flex items-center justify-between gap-3 rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-2"
+                  >
+                    <div class="min-w-0 flex items-center gap-2.5">
+                      <div
+                        class="w-8 h-8 shrink-0 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center"
+                      >
+                        <svg
+                          class="w-4 h-4 text-red-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.5"
+                            d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+                          ></path>
+                        </svg>
+                      </div>
+                      <div class="min-w-0">
+                        <div
+                          class="text-[12px] font-medium text-white font-mono leading-none truncate"
+                        >
+                          47.76.120.8:9090
+                        </div>
+                        <div class="text-[10px] text-brand-muted mt-1 truncate">
+                          Singapore VPS / mihomo
+                        </div>
+                      </div>
+                    </div>
+                    <span
+                      class="h-2.5 w-2.5 shrink-0 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.7)]"
+                      aria-label="Remote host offline"
+                    ></span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
         </section>
 
+        <!-- Quick Start -->
         <section
           id="quick-start"
-          class="quick-start"
-          aria-label="ClashBar 快速开始"
-          data-copy-aria-label="quick.sectionLabel"
+          class="mb-32 scroll-mt-24"
           data-reveal
         >
-          <p
-            class="section-kicker"
-            data-copy="quick.kicker"
+          <div class="text-center mb-12">
+            <h2
+              class="text-3xl md:text-4xl font-bold tracking-tight text-white"
+              data-copy="header.quickStart"
+            >
+              快速开始
+            </h2>
+            <p
+              class="text-brand-muted max-w-2xl mx-auto text-sm mt-3"
+              data-copy="quick.body"
+            >
+              第一次接管流量，照这个顺序就够了。
+            </p>
+          </div>
+          <div
+            class="rounded-3xl border border-white/10 bg-white/[0.02] p-8 md:p-12 shadow-panel backdrop-blur-xl"
           >
-            快速开始
-          </p>
-          <h2 data-copy="quick.title">第一次接管流量，照这个顺序就够了。</h2>
-          <ol class="quick-steps">
-            <li data-copy="quick.step1">
-              先关闭其他同类客户端（如 ClashX / Verge / Nyanpasu / Party
-              等），避免系统代理被抢占。
-            </li>
-            <li data-copy="quick.step2">
-              首次启动时，可先使用默认配置启动一次，以下载 mihomo 所需依赖文件。
-            </li>
-            <li data-copy="quick.step3">
-              在 <code>Proxy</code> 中选择或导入你的本地 / 远程配置。
-            </li>
-            <li data-copy="quick.step4">
-              点击 <code>Start</code> 启动 Core；刚改完配置或内核时建议用
-              <code>Restart</code>。
-            </li>
-            <li data-copy="quick.step5">
-              在 Proxy Group 中选择节点并执行延迟测试，先确认线路真的可用。
-            </li>
-            <li data-copy="quick.step6">
-              确认连通性正常后再开启系统代理；如果开关没反应，检查“系统设置 →
-              通用 → 登录项”里的 <code>ClashBar</code> 后台项目是否已授权。
-            </li>
-          </ol>
+            <ol class="quick-steps">
+              <li data-copy="quick.step1">
+                先关闭其他同类客户端（如 ClashX / Verge / Nyanpasu
+                等），并关闭这些软件的后台活动，避免系统代理被抢占，或影响
+                ClashBar 的后台辅助进程。
+              </li>
+              <li data-copy="quick.step2">
+                首次启动时，可先使用默认配置启动一次，以下载 mihomo
+                所需依赖文件。
+              </li>
+              <li data-copy="quick.step3">
+                在“节点页面”的“配置文件”中选择或导入你的本地 / 远程配置。
+              </li>
+              <li data-copy="quick.step4">
+                点击 <code>Start</code> 启动内核；刚改完配置或内核时建议用
+                <code>Restart</code>。
+              </li>
+              <li data-copy="quick.step5">
+                在节点分组中选择节点并执行延迟测试，先确认线路真的可用。
+              </li>
+              <li data-copy="quick.step6">
+                确认连通性正常后再开启系统代理；如果开关没反应，检查“系统设置 →
+                通用 → 登录项”里
+                <code>ClashBar</code> 后台活动是否被关闭，这会影响 ClashBar
+                的后台辅助进程。
+              </li>
+            </ol>
+          </div>
         </section>
 
+        <!-- FAQ -->
         <section
           id="faq"
-          class="faq"
-          aria-label="ClashBar 常见问题"
-          data-copy-aria-label="faq.sectionLabel"
+          class="mb-32 scroll-mt-24"
           data-reveal
         >
-          <h2>FAQ</h2>
-          <div class="faq-list">
+          <div class="text-center mb-12">
+            <h2
+              class="text-3xl md:text-4xl font-bold tracking-tight text-white"
+              data-copy="header.faq"
+            >
+              常见问题 (FAQ)
+            </h2>
+            <p
+              class="text-brand-muted max-w-2xl mx-auto text-sm mt-3"
+              data-copy="faq.body"
+            >
+              把安装、权限、日志、内核替换和系统代理这类高频问题一次说清楚。
+            </p>
+          </div>
+          <div
+            class="faq rounded-3xl border border-white/10 bg-white/[0.02] p-8 md:p-12 shadow-panel backdrop-blur-xl"
+          >
             <details open>
-              <summary data-copy="faq.q1">什么是 ClashBar，它适合谁？</summary>
-              <div
-                class="faq-answer"
-                data-copy-html="faq.a1"
-              >
-                <p>
-                  ClashBar 是基于 <code>SwiftUI + AppKit</code> 构建、由
-                  <code>mihomo</code> 驱动的原生 macOS
-                  菜单栏代理客户端。它不想做一个臃肿的大壳，而是把配置管理、节点切换、规则刷新、连接排障和系统代理控制收束进菜单栏。
-                </p>
-                <ul>
-                  <li>
-                    <strong>适合的人：</strong
-                    >想要原生菜单栏体验、轻量体积、长期稳定运行和可观测排障能力的
-                    macOS 用户。
-                  </li>
-                  <li>
-                    <strong>项目状态：</strong>这是一个持续与 Codex
-                    协作迭代的自用项目，需求、实现和文档都在快速打磨。
-                  </li>
-                </ul>
-                <p>
-                  如果你关心内部拆分，可以继续看
-                  <a
-                    href="https://github.com/Sitoi/ClashBar/blob/main/ARCHITECTURE.md"
-                    >ARCHITECTURE.md</a
-                  >。
-                </p>
-              </div>
-            </details>
-            <details>
-              <summary data-copy="faq.q2">
-                为什么它一直强调“轻量”和“稳定”？
-              </summary>
-              <div
-                class="faq-answer"
-                data-copy-html="faq.a2"
-              >
-                <p>
-                  ClashBar
-                  的目标很直接：在保留核心代理能力的前提下，把复杂度、体积和运行负担压下来，不为了短期堆功能去牺牲日常稳定性。
-                </p>
-                <ul>
-                  <li>
-                    <strong>体积目标：</strong>打包 <code>mihomo</code> Core
-                    后尽量控制在 20 MB 以内；移除 Core 后尽量控制在 10 MB 以内。
-                  </li>
-                  <li>
-                    <strong>当前对比：</strong
-                    ><code>ClashBar.app (No Core)</code> 约 7.6 MB，<code
-                      >ClashBar.app</code
-                    >
-                    约 18.4 MB，<code>ClashMac.app</code> 约 75.2 MB，<code
-                      >Clash Verge.app</code
-                    >
-                    约 128.4 MB，<code>Clash Party.app</code> 约 496.7 MB。
-                  </li>
-                </ul>
-                <p>
-                  这些数据来自同一台 macOS 环境下的 Finder
-                  显示值，重点不是炫数字，而是说明这个项目的设计方向。
-                </p>
-              </div>
-            </details>
-            <details>
               <summary data-copy="faq.q4">
                 安装和使用前，哪些前提不能忽略？
               </summary>
@@ -1811,83 +1676,29 @@
                 class="faq-answer"
                 data-copy-html="faq.a4"
               >
-                <ul>
+                <ul class="list-disc pl-5 space-y-1">
                   <li>
-                    <strong>只保留一个接管者：</strong>同一时间只保留一个
-                    <code>mihomo</code> / Clash
-                    系客户端接管系统代理。别让其他同类软件和它抢端口、系统代理或
-                    Helper。
+                    同一时间只保留一个 <code>mihomo</code> / Clash
+                    系客户端接管系统代理，避免端口、系统代理或后台 Helper
+                    状态互相覆盖。
                   </li>
                   <li>
-                    <strong>安装位置要对：</strong>优先使用 Release
-                    页面提供的版本，并把 <code>ClashBar.app</code> 放到
-                    <code>/Applications</code>。
+                    优先使用 Release 提供的打包版本，并将
+                    <code>ClashBar.app</code> 放到
+                    <code>/Applications</code> 后再运行。
                   </li>
                   <li>
-                    <strong>登录项要授权：</strong
-                    >第一次启用系统代理或开机启动时，如果 macOS
-                    弹后台项目提示，就去“系统设置 → 通用 → 登录项”允许
+                    首次启用系统代理或开机自启时，如果 macOS
+                    弹出后台项目提示，请在“系统设置 → 通用 → 登录项”里允许
                     <code>ClashBar</code>。
                   </li>
                   <li>
-                    <strong>升级后别先怀疑代码：</strong
-                    >如果系统代理开关点了没反应，先把登录项里的
-                    <code>ClashBar</code> 后台项目关掉再打开一次。
+                    如果系统代理开关没反应，先不要急着怀疑配置；更常见的是后台项目状态卡住了，把登录项里的
+                    <code>ClashBar</code> 关闭再打开一次。
                   </li>
                   <li>
-                    <strong>改完就重启运行态：</strong
-                    >切换配置、替换内核、远程订阅批量更新后，只要行为异常，先执行一次
-                    <code>Restart</code>。
-                  </li>
-                </ul>
-              </div>
-            </details>
-            <details>
-              <summary data-copy="faq.q5">
-                第一次接管流量，推荐怎么开始？
-              </summary>
-              <div
-                class="faq-answer"
-                data-copy-html="faq.a5"
-              >
-                <ol class="quick-steps">
-                  <li>点击菜单栏图标，打开 ClashBar 面板。</li>
-                  <li>
-                    在 <code>Proxy</code> 页面选择配置，或者导入本地 /
-                    远程配置。
-                  </li>
-                  <li>点击 <code>Start</code> 启动 Core。</li>
-                  <li>
-                    选择代理模式：<code>Rule</code>、<code>Global</code> 或
-                    <code>Direct</code>。
-                  </li>
-                  <li>在 Proxy Group 中切换节点并执行延迟测试。</li>
-                  <li>确认连通性正常后再开启系统代理。</li>
-                </ol>
-              </div>
-            </details>
-            <details>
-              <summary data-copy="faq.q7">哪些场景最适合用 ClashBar？</summary>
-              <div
-                class="faq-answer"
-                data-copy-html="faq.a7"
-              >
-                <ul>
-                  <li>
-                    <strong>日常办公：</strong
-                    >根据网络环境快速切换配置与节点，优先保证在线稳定性。
-                  </li>
-                  <li>
-                    <strong>故障排查：</strong>结合 <code>Connections</code> 和
-                    <code>Logs</code> 看连接异常、规则命中和实际路由。
-                  </li>
-                  <li>
-                    <strong>订阅维护：</strong
-                    >批量更新远程配置后，一键重载并复核节点延迟。
-                  </li>
-                  <li>
-                    <strong>安全优先：</strong>敏感信息走
-                    Keychain，日志内容做脱敏处理。
+                    刚替换配置或内核后，优先执行一次
+                    <code>Restart</code>，通常就能清掉大部分状态不一致问题。
                   </li>
                 </ul>
               </div>
@@ -1904,21 +1715,22 @@
                   运行时根目录在
                   <code>~/Library/Application Support/clashbar</code>。
                 </p>
-                <ul>
+                <ul class="list-disc pl-5 mt-2 space-y-1">
                   <li>
                     <strong><code>config/</code>：</strong
                     >用户配置文件和订阅导入结果。
                   </li>
                   <li>
                     <strong><code>logs/</code>：</strong
-                    >运行日志和排障输出。排障结束后可以按需清理。
+                    >运行日志和排障输出，排障完成后可以按需清理。
                   </li>
                   <li>
                     <strong><code>state/</code>：</strong
-                    >应用运行状态和会话数据。建议交给程序维护，不要手动改。
+                    >应用运行状态和会话数据，建议交给程序维护，不要手动编辑。
                   </li>
                   <li>
-                    <strong><code>core/</code>：</strong>运行时 Core 二进制。
+                    <strong><code>core/</code>：</strong>运行时
+                    <code>mihomo</code> 内核文件。
                   </li>
                 </ul>
               </div>
@@ -1934,14 +1746,15 @@
                   <code>~/Library/Application Support/clashbar/core/mihomo</code
                   >。
                 </p>
-                <ul>
+                <ul class="list-disc pl-5 mt-2 space-y-1">
                   <li>先执行 <code>Stop</code>，确认当前内核进程已经停掉。</li>
                   <li>
-                    准备目标内核可执行文件，文件名保持为 <code>mihomo</code>。
+                    准备要替换的可执行文件，并保持文件名为
+                    <code>mihomo</code>。
                   </li>
                   <li>
-                    替换完成后，回到 ClashBar 执行 <code>Start</code> 或
-                    <code>Restart</code>。
+                    替换完成后回到 ClashBar，执行 <code>Start</code> 或
+                    <code>Restart</code> 即可生效。
                   </li>
                 </ul>
               </div>
@@ -1954,10 +1767,13 @@
                 class="faq-answer"
                 data-copy-html="faq.a10"
               >
-                <p>这通常是 Gatekeeper 对未公证应用的默认拦截。</p>
-                <ul>
+                <p>
+                  这通常是 Gatekeeper 对未公证应用的默认拦截，不是 ClashBar
+                  独有问题。
+                </p>
+                <ul class="list-disc pl-5 mt-2 space-y-1">
                   <li>
-                    先把应用放到 <code>/Applications/ClashBar.app</code>。
+                    先把应用移动到 <code>/Applications/ClashBar.app</code>。
                   </li>
                   <li>打开“系统设置 → 隐私与安全性”，点击“仍要打开”。</li>
                   <li>
@@ -1972,68 +1788,84 @@
               </div>
             </details>
             <details>
-              <summary data-copy="faq.q13">
-                为什么请求没有按预期走代理？
-              </summary>
+              <summary data-copy="faq.q11">系统代理无法打开怎么办？</summary>
               <div
                 class="faq-answer"
-                data-copy-html="faq.a13"
+                data-copy-html="faq.a11"
               >
-                <ul>
+                <p>
+                  这种情况大多与应用安装位置、后台项目授权、其他代理软件冲突，或
+                  macOS 登录项状态卡住有关。
+                </p>
+                <ul class="list-disc pl-5 mt-2 space-y-1">
                   <li>
-                    先确认当前不是
-                    <code>Direct</code> 模式，也没有别的软件覆盖系统代理。
+                    确认你运行的是打包后的应用，并且
+                    <code>ClashBar.app</code> 已放在
+                    <code>/Applications</code>。
                   </li>
-                  <li>去 <code>Rules</code> 页面看命中规则和策略结果。</li>
                   <li>
-                    去
-                    <code>Connections</code> 定位对应连接，核对目标地址和链路。
+                    到“系统设置 → 通用 → 登录项”中允许
+                    <code>ClashBar</code>
+                    后台项目；如果已允许但仍异常，先手动关闭再重新打开一次。
                   </li>
                   <li>
-                    最后在 <code>Logs</code> 用关键词过滤交叉验证路由决策。
+                    退出其他 <code>mihomo</code> / Clash
+                    系客户端，避免系统代理被别的软件接管。
+                  </li>
+                  <li>
+                    回到应用里执行一次
+                    <code>Restart</code> Core，然后再重新开启系统代理。
+                  </li>
+                  <li>
+                    如果仍然失败，打开
+                    <code>Logs</code> 查看关键错误信息再排查。
                   </li>
                 </ul>
-                <p>规则、连接和日志这三处信息拼起来，问题通常就露出来了。</p>
               </div>
             </details>
           </div>
         </section>
       </main>
 
-      <!-- 新增规范的 Footer 页脚 -->
-      <footer class="site-footer">
-        <div class="footer-content">
-          <div class="footer-brand">
+      <!-- Footer -->
+      <footer class="mt-24 border-t border-white/10 pt-10 pb-8">
+        <div
+          class="flex flex-col items-center justify-between gap-6 sm:flex-row"
+        >
+          <div class="flex items-center gap-3 font-semibold text-white">
             <img
+              class="h-6 w-6"
               src="./imgs/logo.png"
               alt="ClashBar"
             />
             <span>ClashBar</span>
           </div>
-          <div class="footer-links">
+          <div class="flex gap-6 text-sm">
             <a
+              class="text-brand-muted transition hover:text-white"
               href="https://github.com/Sitoi/ClashBar/releases"
-              data-copy="footer.releases"
               >Releases</a
             >
             <a
+              class="text-brand-muted transition hover:text-white"
               href="https://github.com/Sitoi/ClashBar"
-              data-copy="footer.github"
               >GitHub</a
             >
             <a
+              class="text-brand-muted transition hover:text-white"
               href="https://t.me/clashbars"
-              data-copy="footer.telegram"
               >Telegram</a
             >
             <a
+              class="text-brand-muted transition hover:text-white"
               href="https://github.com/Sitoi/ClashBar/issues"
-              data-copy="footer.issues"
               >问题反馈</a
             >
           </div>
         </div>
-        <div class="footer-bottom">
+        <div
+          class="mt-8 text-center sm:text-left text-xs text-brand-muted opacity-60"
+        >
           <p data-copy="footer.copyright">
             &copy; 2026 ClashBar. 开源协议为 GPL-3.0。
           </p>
@@ -2041,197 +1873,205 @@
       </footer>
     </div>
 
+    <!-- 脚本与多语言数据字典 -->
     <script>
       const COPY = {
         zh: {
           'header.features': '功能',
           'header.quickStart': '快速开始',
           'header.faq': '常见问题',
-          'hero.eyebrow': '原生 macOS 代理工具',
-          'hero.title': '轻量、原生，菜单栏一开就能用。',
+          'hero.eyebrow': '面向 macOS 的原生菜单栏代理工具',
+          'hero.titleLineOne': '轻量、原生、稳定',
+          'hero.titleLineTwo': '菜单栏一开就能用',
           'hero.body':
-            '由 mihomo 驱动的原生 macOS 菜单栏代理工具，专注轻量、稳定与可观察的运行体验。',
-          'hero.primaryCta': '从 Releases 下载',
-          'hero.secondaryCta': '前往 GitHub',
-          'hero.proofSizeLabel': '应用体积',
-          'hero.proofBuildLabel': '构建方式',
-          'hero.proofCoreLabel': '驱动内核',
-          'hero.proofPlatformLabel': '平台要求',
-          'proof.native.title': '原生菜单栏',
-          'proof.native.body': '无需传统主窗口，日常操作都在菜单栏完成。',
-          'proof.size.title': '极致精简',
-          'proof.size.body': '移除冗余依赖，专注核心代理逻辑，不占用多余资源。',
-          'proof.observe.title': '可观察运行态',
-          'proof.observe.body': '实时速率、连接、规则与日志可快速排障。',
-          'proof.system.title': '系统级集成',
-          'proof.system.body': '支持系统代理、TUN、登录项与权限协作。',
-          'features.board.title': '菜单栏里的代理控制台',
+            'ClashBar 基于 mihomo 构建，聚焦原生菜单栏体验、轻量交付与长期稳定运行。应用本体仅 2.7MB，适合快速安装、轻量启动与日常常驻。',
+          'hero.sizeLabel': '极致轻量',
+          'hero.sizeBody':
+            '对菜单栏工具来说，体积不只是数字，也意味着更低的下载成本、启动负担和常驻压力。更克制的体积，带来更无感的体验。',
+          'hero.primaryCta': '下载最新版本',
+          'hero.secondaryCta': '查看 GitHub',
+
+          'features.board.title': '原生菜单栏控制台',
           'features.board.body':
             '把配置导入、节点切换、系统代理和排障视图收束到一个紧凑的原生面板里。',
-          'features.config.title': '配置导入',
-          'features.config.body':
-            '为本机 Core 导入本地 YAML、远程订阅，并支持批量更新。',
+
           'features.runtime.title': '运行态指标',
           'features.runtime.body':
-            '在菜单栏和面板同时看到实时速率、连接数、内存占用和当前模式。',
+            '在菜单栏和面板同时看到上/下行速率、连接数、内存占用和当前模式。',
           'features.runtime.rateLabel': '实时速率',
           'features.runtime.memoryLabel': '内存占用',
+          'features.runtime.downloadLabel': '下行',
+          'features.runtime.uploadLabel': '上行',
+          'features.runtime.connLabel': '42 Connections',
+          'features.runtime.modeLabel': 'Rule Mode',
+
+          'features.nodes.title': '节点切换',
+          'features.nodes.body': '分组切换、策略选择和延迟测试都集中在同一处。',
+          'features.debug.title': '日志检索',
+          'features.debug.body': '按级别过滤、关键词搜索并复制关键日志。',
+          'features.debug.searchLabel': '筛选: mihomo',
+
+          'features.connections.title': '连接排障',
+          'features.connections.body':
+            '观察活动连接，并按需关闭单个或全部连接。',
+          'features.connections.activeLabel': '128 Active',
+          'features.connections.signalLabel': '当前列表展示 3 条连接记录',
+
+          'features.rules.title': '规则视图',
+          'features.rules.body': '快速查看规则总数、命中分布和常用规则类型。',
+          'features.rules.countLabel': '规则总数',
+          'features.mode.badge': '模式',
+          'features.mode.title': '运行模式',
+          'features.mode.body':
+            '在菜单栏里快速切换 Rule、Global、Direct 三种模式。',
+          'features.mode.activeLabel': '当前',
+          'features.mode.rule': '规则匹配',
+          'features.mode.global': '全局代理',
+          'features.mode.direct': '全局直连',
           'features.system.title': '系统代理',
           'features.system.body':
             '开关系统代理、解析端口，并和登录项状态协同。',
           'features.system.toggleLabel': '已启用',
-          'features.nodes.title': '节点切换',
-          'features.nodes.body': '分组切换、策略选择和延迟测试都集中在同一处。',
-          'features.rules.title': '规则视图',
-          'features.rules.body':
-            '快速查看规则与规则集数量、所属策略以及提供方更新状态。',
-          'features.rules.countLabel': '规则总数',
-          'features.connections.title': '连接排障',
-          'features.connections.body':
-            '观察活动连接，并按需关闭单个或全部连接。',
-          'features.connections.signalLabel': '当前列表展示 3 条连接记录',
-          'features.debug.title': '日志检索',
-          'features.debug.body': '按级别过滤、关键词搜索并复制关键日志。',
-          'features.debug.searchLabel': '筛选: mihomo',
+          'features.config.title': '配置导入',
+          'features.config.body':
+            '为本机 Core 导入本地 YAML、远程订阅，并支持批量更新。',
+          'features.config.badgeLocal': '本地',
+          'features.config.badgeRemote': '远程',
           'features.tun.title': 'TUN 与权限',
           'features.tun.body':
             '在这里集中执行 TUN 权限检查、授权补齐，以及与配置同步的恢复操作。',
           'features.tun.statusLabel': '已授权',
-          'features.config.badgeLocal': '本地',
-          'features.config.badgeRemote': '远程',
-          'quick.kicker': '快速开始',
-          'quick.title': '第一次接管流量，照这个顺序就够了。',
+          'features.core.title': '内核更换',
+          'features.core.badge': '手动',
+          'features.core.compactBody': '在 mihomo 与 smart 间手动切换。',
+          'features.core.standbyLabel': '可切换',
+          'features.core.switchLabel': '切换后重启',
+          'features.core.restartLabel': '重启',
+          'features.core.body':
+            '一键停止进程并直达内核目录。替换 mihomo 二进制文件后，点击 Restart 即可无缝重启，不折腾环境变量和复杂配置。',
+
+          'quick.body': '第一次接管流量，照这个顺序就够了。',
           'quick.step1':
-            '先关闭其他同类客户端（如 ClashX / Verge / Nyanpasu / Party 等），避免系统代理被抢占。',
+            '先关闭其他同类客户端（如 ClashX / Verge / Nyanpasu 等），并关闭这些软件的后台活动，避免系统代理被抢占，或影响 ClashBar 的后台辅助进程。',
           'quick.step2':
             '首次启动时，可先使用默认配置启动一次，以下载 mihomo 所需依赖文件。',
-          'quick.step3': '在 `Proxy` 中选择或导入你的本地 / 远程配置。',
+          'quick.step3':
+            '在“节点页面”的“配置文件”中选择或导入你的本地 / 远程配置。',
           'quick.step4':
-            '点击 `Start` 启动 Core；刚改完配置或内核时建议用 `Restart`。',
+            '点击 `Start` 启动内核；刚改完配置或内核时建议用 `Restart`。',
           'quick.step5':
-            '在 Proxy Group 中选择节点并执行延迟测试，先确认线路真的可用。',
+            '在节点分组中选择节点并执行延迟测试，先确认线路真的可用。',
           'quick.step6':
-            '确认连通性正常后再开启系统代理；如果开关没反应，检查“系统设置 → 通用 → 登录项”里的 ClashBar 后台项目是否已授权。',
-          'faq.q1': '什么是 ClashBar，它适合谁？',
-          'faq.q2': '为什么它一直强调“轻量”和“稳定”？',
+            '确认连通性正常后再开启系统代理；如果开关没反应，检查“系统设置 → 通用 → 登录项”里 ClashBar 后台活动是否被关闭，这会影响 ClashBar 的后台辅助进程。',
+          'faq.body':
+            '把安装、权限、日志、内核替换和系统代理这类高频问题一次说清楚。',
+
           'faq.q4': '安装和使用前，哪些前提不能忽略？',
-          'faq.q5': '第一次接管流量，推荐怎么开始？',
-          'faq.q7': '哪些场景最适合用 ClashBar？',
           'faq.q8': '配置、日志和运行状态都存在哪里？',
           'faq.q9': '如何替换或切换 mihomo 内核？',
           'faq.q10': 'macOS 提示“已损坏”或“无法验证开发者”怎么办？',
-          'faq.q13': '为什么请求没有按预期走代理？',
-          'download.title': '准备试试 ClashBar？',
-          'download.body':
-            '下载最新版本，或者先看 GitHub、Telegram 和问题反馈。',
-          'download.primaryCta': '下载最新版本',
-          'download.github': 'GitHub',
-          'download.telegram': 'Telegram',
-          'download.issues': '问题反馈',
-          'footer.releases': 'Releases',
-          'footer.github': 'GitHub',
-          'footer.telegram': 'Telegram',
-          'footer.issues': '问题反馈',
+          'faq.q11': '系统代理无法打开怎么办？',
           'footer.copyright': '© 2024-2026 ClashBar. 开源协议为 GPL-3.0。',
         },
         en: {
           'header.features': 'Features',
           'header.quickStart': 'Quick Start',
           'header.faq': 'FAQ',
-          'hero.eyebrow': 'Native macOS Proxy Utility',
-          'hero.title': 'Lightweight. Native. Ready when the menu bar opens.',
+          'hero.eyebrow': 'Native Menu Bar Proxy For macOS',
+          'hero.titleLineOne': 'Lightweight. Native. Stable.',
+          'hero.titleLineTwo': 'Ready in the menu bar.',
           'hero.body':
-            'A native macOS menu bar proxy utility powered by mihomo, built for lightweight stability and observable runtime control.',
-          'hero.primaryCta': 'Download from Releases',
+            'ClashBar is powered by mihomo and focused on native menu bar workflows, lean delivery, and stable long-running use. App footprint is just 2.7 MB.',
+          'hero.sizeLabel': 'Ultra Lightweight',
+          'hero.sizeBody':
+            'For a menu bar utility, size affects download cost, launch overhead, and always-on comfort. ClashBar keeps all three in check.',
+          'hero.primaryCta': 'Download Latest',
           'hero.secondaryCta': 'View on GitHub',
-          'hero.proofSizeLabel': 'App Size',
-          'hero.proofBuildLabel': 'Build',
-          'hero.proofCoreLabel': 'Powered Core',
-          'hero.proofPlatformLabel': 'Platform Target',
-          'proof.native.title': 'Native Menu Bar',
-          'proof.native.body':
-            'No traditional main window. Daily control stays in the menu bar.',
-          'proof.size.title': 'Ultra Lightweight',
-          'proof.size.body':
-            'Stripped of bloated dependencies, focusing entirely on core proxy routing with minimal footprint.',
-          'proof.observe.title': 'Observable Runtime',
-          'proof.observe.body':
-            'Watch live rates, connections, rules, and logs to debug faster.',
-          'proof.system.title': 'System Integration',
-          'proof.system.body':
-            'Works with system proxy, TUN, login items, and permission flows.',
-          'features.board.title': 'A Proxy Console That Lives In The Menu Bar',
+
+          'features.board.title': 'Native Menu Bar Console',
           'features.board.body':
-            'Bring config import, node switching, system proxy control, and troubleshooting views into one compact native panel.',
-          'features.config.title': 'Config Import',
-          'features.config.body':
-            'Start local YAML imports, remote subscriptions, and batch refreshes for the local core from one place.',
+            'Bring config import, node switching, system proxy control, and troubleshooting into one panel.',
+
           'features.runtime.title': 'Runtime Metrics',
           'features.runtime.body':
-            'Keep live rates, connection count, memory, and the current mode in view.',
+            'See upload/download rates, connection count, memory usage, and mode at a glance.',
           'features.runtime.rateLabel': 'Rate',
           'features.runtime.memoryLabel': 'Memory',
-          'features.system.title': 'System Proxy',
-          'features.system.body':
-            'Toggle system proxy, resolve ports, and coordinate with login-item state.',
-          'features.system.toggleLabel': 'Enabled',
+          'features.runtime.downloadLabel': 'Download',
+          'features.runtime.uploadLabel': 'Upload',
+          'features.runtime.connLabel': '42 Connections',
+          'features.runtime.modeLabel': 'Rule Mode',
+
           'features.nodes.title': 'Node Switching',
           'features.nodes.body':
-            'Keep group changes, strategy selection, and latency tests in one place.',
-          'features.rules.title': 'Rule View',
-          'features.rules.body':
-            'Read rule and ruleset counts, policies, and provider update status at a glance.',
-          'features.rules.countLabel': 'Total Rules',
+            'Group changes, strategy selection, and latency tests in one place.',
+          'features.debug.title': 'Log Search',
+          'features.debug.body':
+            'Filter by level, search by keyword, and copy logs.',
+          'features.debug.searchLabel': 'filter: mihomo',
+
           'features.connections.title': 'Connection Debug',
           'features.connections.body':
             'Inspect active connections and close one or all when needed.',
+          'features.connections.activeLabel': '128 Active',
           'features.connections.signalLabel': '3 active records shown',
-          'features.debug.title': 'Log Search',
-          'features.debug.body':
-            'Filter by level, search by keyword, and copy the logs that matter.',
-          'features.debug.searchLabel': 'filter: mihomo',
-          'features.tun.title': 'TUN And Permissions',
+
+          'features.rules.title': 'Rule View',
+          'features.rules.body':
+            'See total rules, hit distribution, and common rule types.',
+          'features.rules.countLabel': 'Total Rules',
+          'features.mode.badge': 'Mode',
+          'features.mode.title': 'Run Mode',
+          'features.mode.body':
+            'Switch between Rule, Global, and Direct right from the menu bar.',
+          'features.mode.activeLabel': 'Active',
+          'features.mode.rule': 'Rule Matching',
+          'features.mode.global': 'Global Proxy',
+          'features.mode.direct': 'Direct',
+          'features.system.title': 'System Proxy',
+          'features.system.body':
+            'Toggle system proxy, resolve ports, and coordinate with login items.',
+          'features.system.toggleLabel': 'Enabled',
+          'features.config.title': 'Config Import',
+          'features.config.body':
+            'Start local YAML imports and remote subscriptions here.',
+          'features.config.badgeLocal': 'Local',
+          'features.config.badgeRemote': 'Remote',
+          'features.tun.title': 'TUN & Permissions',
           'features.tun.body':
             'Handle permission checks, authorization follow-up, and recovery in one spot.',
           'features.tun.statusLabel': 'Authorized',
-          'features.config.badgeLocal': 'Local',
-          'features.config.badgeRemote': 'Remote',
-          'quick.kicker': 'Quick Start',
-          'quick.title':
-            'First time? This flow will get you to traffic safely.',
+          'features.core.title': 'Core Replacement',
+          'features.core.badge': 'Manual',
+          'features.core.compactBody':
+            'Switch between mihomo and smart manually.',
+          'features.core.standbyLabel': 'Selectable',
+          'features.core.switchLabel': 'Restart After Change',
+          'features.core.restartLabel': 'Restart',
+          'features.core.body':
+            'Stop the process, jump to the directory, replace the binary, and hit Restart without touching environment variables.',
+
+          'quick.body': 'First time? Follow these steps.',
           'quick.step1':
-            'Quit other Clash-family clients (ClashX, Verge, Nyanpasu, Party, etc.) so only ClashBar owns the system proxy.',
+            'Quit other similar clients (such as ClashX / Verge / Nyanpasu) and disable their background activities, so they do not take over the system proxy or interfere with ClashBar background helper processes.',
           'quick.step2':
-            'On first launch, start once with the bundled default profile so mihomo can download its required assets.',
+            'On first launch, start once with the default profile so mihomo can download its required files.',
           'quick.step3':
-            'Then pick or import your own local / remote profile in `Proxy`.',
+            'On the "Nodes" page, under "Profiles", choose or import your local / remote config.',
           'quick.step4':
-            'Hit `Start` to launch the core; if you just changed configs or the core, prefer `Restart`.',
+            'Hit `Start` to launch the core; prefer `Restart` after updates.',
           'quick.step5':
-            'Choose a node in the Proxy Group and run a latency test to confirm it really works.',
+            'In a node group, choose a node and run a latency test to confirm the route really works.',
           'quick.step6':
-            'Only enable system proxy after connectivity looks right; if it does nothing, re-check the ClashBar background item in macOS Login Items.',
-          'faq.q1': 'What is ClashBar, and who is it for?',
-          'faq.q2': 'Why does it obsess over being lightweight and stable?',
-          'faq.q4': 'What should I know before installing and using it?',
-          'faq.q5': 'What is the recommended first-time setup flow?',
-          'faq.q7': 'What kinds of use cases fit ClashBar best?',
+            'Enable system proxy only after connectivity looks right. If the toggle does nothing, check whether ClashBar background activity is disabled in System Settings > General > Login Items. That can affect ClashBar background helper processes.',
+          'faq.body':
+            'Read the common answers on install, permissions, logs, core replacement, and system proxy behavior.',
+
+          'faq.q4': 'What should I know before installing?',
           'faq.q8': 'Where are configs, logs, and runtime state stored?',
-          'faq.q9': 'How do I replace or switch the mihomo core?',
-          'faq.q10':
-            'What if macOS says the app is damaged or cannot be verified?',
-          'faq.q13': 'Why is traffic not following the expected proxy path?',
-          'download.title': 'Ready to try ClashBar?',
-          'download.body':
-            'Download the latest release, or review GitHub, Telegram, and issue tracking first.',
-          'download.primaryCta': 'Download Latest Release',
-          'download.github': 'GitHub',
-          'download.telegram': 'Telegram',
-          'download.issues': 'Issues',
-          'footer.releases': 'Releases',
-          'footer.github': 'GitHub',
-          'footer.telegram': 'Telegram',
-          'footer.issues': 'Issues',
+          'faq.q9': 'How do I replace the mihomo core?',
+          'faq.q10': 'What if macOS says the app is damaged?',
+          'faq.q11': 'What if the system proxy toggle will not turn on?',
           'footer.copyright':
             '© 2024-2026 ClashBar. Open source under GPL-3.0.',
         },
@@ -2239,149 +2079,29 @@
 
       const COPY_HTML = {
         zh: {
-          'faq.a1': `<p>ClashBar 是基于 <code>SwiftUI + AppKit</code> 构建、由 <code>mihomo</code> 驱动的原生 macOS 菜单栏代理客户端。它不想做一个臃肿的大壳，而是把配置管理、节点切换、规则刷新、连接排障和系统代理控制收束进菜单栏。</p>
-            <ul>
-              <li><strong>适合的人：</strong>想要原生菜单栏体验、轻量体积、长期稳定运行和可观测排障能力的 macOS 用户。</li>
-              <li><strong>项目状态：</strong>这是一个持续与 Codex 协作迭代的自用项目，需求、实现和文档都在快速打磨。</li>
-            </ul>
-            <p>如果你关心内部拆分，可以继续看 <a href="https://github.com/Sitoi/ClashBar/blob/main/ARCHITECTURE.md">ARCHITECTURE.md</a>。</p>`,
-          'faq.a2': `<p>ClashBar 的目标很直接：在保留核心代理能力的前提下，把复杂度、体积和运行负担压下来，不为了短期堆功能去牺牲日常稳定性。</p>
-            <ul>
-              <li><strong>体积目标：</strong>打包 <code>mihomo</code> Core 后尽量控制在 20 MB 以内；移除 Core 后尽量控制在 10 MB 以内。</li>
-              <li><strong>当前对比：</strong><code>ClashBar.app (No Core)</code> 约 7.6 MB，<code>ClashBar.app</code> 约 18.4 MB，<code>ClashMac.app</code> 约 75.2 MB，<code>Clash Verge.app</code> 约 128.4 MB，<code>Clash Party.app</code> 约 496.7 MB。</li>
-            </ul>
-            <p>这些数据来自同一台 macOS 环境下的 Finder 显示值，重点不是炫数字，而是说明这个项目的设计方向。</p>`,
-          'faq.a4': `<ul>
-              <li><strong>只保留一个接管者：</strong>同一时间只保留一个 <code>mihomo</code> / Clash 系客户端接管系统代理。别让其他同类软件和它抢端口、系统代理或 Helper。</li>
-              <li><strong>安装位置要对：</strong>优先使用 Release 页面提供的版本，并把 <code>ClashBar.app</code> 放到 <code>/Applications</code>。</li>
-              <li><strong>登录项要授权：</strong>第一次启用系统代理或开机启动时，如果 macOS 弹后台项目提示，就去“系统设置 → 通用 → 登录项”允许 <code>ClashBar</code>。</li>
-              <li><strong>升级后别先怀疑代码：</strong>如果系统代理开关点了没反应，先把登录项里的 <code>ClashBar</code> 后台项目关掉再打开一次。</li>
-              <li><strong>改完就重启运行态：</strong>切换配置、替换内核、远程订阅批量更新后，只要行为异常，先执行一次 <code>Restart</code>。</li>
-            </ul>`,
-          'faq.a5': `<ol class="quick-steps">
-              <li>点击菜单栏图标，打开 ClashBar 面板。</li>
-              <li>在 <code>Proxy</code> 页面选择配置，或者导入本地 / 远程配置。</li>
-              <li>点击 <code>Start</code> 启动 Core。</li>
-              <li>选择代理模式：<code>Rule</code>、<code>Global</code> 或 <code>Direct</code>。</li>
-              <li>在 Proxy Group 中切换节点并执行延迟测试。</li>
-              <li>确认连通性正常后再开启系统代理。</li>
-            </ol>`,
-          'faq.a7': `<ul>
-              <li><strong>日常办公：</strong>根据网络环境快速切换配置与节点，优先保证在线稳定性。</li>
-              <li><strong>故障排查：</strong>结合 <code>Connections</code> 和 <code>Logs</code> 看连接异常、规则命中和实际路由。</li>
-              <li><strong>订阅维护：</strong>批量更新远程配置后，一键重载并复核节点延迟。</li>
-              <li><strong>安全优先：</strong>敏感信息走 Keychain，日志内容做脱敏处理。</li>
-            </ul>`,
-          'faq.a8': `<p>运行时根目录在 <code>~/Library/Application Support/clashbar</code>。</p>
-            <ul>
-              <li><strong><code>config/</code>：</strong>用户配置文件和订阅导入结果。</li>
-              <li><strong><code>logs/</code>：</strong>运行日志和排障输出。排障结束后可以按需清理。</li>
-              <li><strong><code>state/</code>：</strong>应用运行状态和会话数据。建议交给程序维护，不要手动改。</li>
-              <li><strong><code>core/</code>：</strong>运行时 Core 二进制。</li>
-            </ul>`,
-          'faq.a9': `<p>运行时内核路径是 <code>~/Library/Application Support/clashbar/core/mihomo</code>。</p>
-            <ul>
-              <li>先执行 <code>Stop</code>，确认当前内核进程已经停掉。</li>
-              <li>准备目标内核可执行文件，文件名保持为 <code>mihomo</code>。</li>
-              <li>替换完成后，回到 ClashBar 执行 <code>Start</code> 或 <code>Restart</code>。</li>
-            </ul>`,
-          'faq.a10': `<p>这通常是 Gatekeeper 对未公证应用的默认拦截，不是 ClashBar 独有问题。</p>
-            <ul>
-              <li>先把应用放到 <code>/Applications/ClashBar.app</code>。</li>
-              <li>打开“系统设置 → 隐私与安全性”，点击“仍要打开”。</li>
-              <li>如果还是被拦截，再执行 <code>sudo xattr -r -d com.apple.quarantine /Applications/ClashBar.app</code> 去掉隔离标记。</li>
-            </ul>`,
-          'faq.a13': `<ul>
-              <li>先确认当前不是 <code>Direct</code> 模式，也没有别的软件覆盖系统代理。</li>
-              <li>去 <code>Rules</code> 页面看命中规则和策略结果。</li>
-              <li>去 <code>Connections</code> 定位对应连接，核对目标地址和链路。</li>
-              <li>最后在 <code>Logs</code> 用关键词过滤交叉验证路由决策。</li>
-            </ul>
-            <p>规则、连接和日志这三处信息拼起来，问题通常就露出来了。</p>`,
+          'faq.a4': `<ul class="list-disc pl-5 space-y-1"><li>同一时间只保留一个 <code>mihomo</code> / Clash 系客户端接管系统代理，避免端口、系统代理或后台 Helper 状态互相覆盖。</li><li>优先使用 Release 提供的打包版本，并将 <code>ClashBar.app</code> 放到 <code>/Applications</code> 后再运行。</li><li>首次启用系统代理或开机自启时，如果 macOS 弹出后台项目提示，请在“系统设置 → 通用 → 登录项”里允许 <code>ClashBar</code>。</li><li>如果系统代理开关没反应，先不要急着怀疑配置；更常见的是后台项目状态卡住了，把登录项里的 <code>ClashBar</code> 关闭再打开一次。</li><li>刚替换配置或内核后，优先执行一次 <code>Restart</code>，通常就能清掉大部分状态不一致问题。</li></ul>`,
+          'faq.a8': `<p>运行时根目录在 <code>~/Library/Application Support/clashbar</code>。</p><ul class="list-disc pl-5 mt-2 space-y-1"><li><strong><code>config/</code>：</strong>用户配置文件和订阅导入结果。</li><li><strong><code>logs/</code>：</strong>运行日志和排障输出，排障完成后可以按需清理。</li><li><strong><code>state/</code>：</strong>应用运行状态和会话数据，建议交给程序维护，不要手动编辑。</li><li><strong><code>core/</code>：</strong>运行时 <code>mihomo</code> 内核文件。</li></ul>`,
+          'faq.a9': `<p>运行时内核路径是 <code>~/Library/Application Support/clashbar/core/mihomo</code>。</p><ul class="list-disc pl-5 mt-2 space-y-1"><li>先执行 <code>Stop</code>，确认当前内核进程已经停掉。</li><li>准备要替换的可执行文件，并保持文件名为 <code>mihomo</code>。</li><li>替换完成后回到 ClashBar，执行 <code>Start</code> 或 <code>Restart</code> 即可生效。</li></ul>`,
+          'faq.a10': `<p>这通常是 Gatekeeper 对未公证应用的默认拦截，不是 ClashBar 独有问题。</p><ul class="list-disc pl-5 mt-2 space-y-1"><li>先把应用移动到 <code>/Applications/ClashBar.app</code>。</li><li>打开“系统设置 → 隐私与安全性”，点击“仍要打开”。</li><li>如果还是被拦截，再执行 <code>sudo xattr -r -d com.apple.quarantine /Applications/ClashBar.app</code> 去掉隔离标记。</li></ul>`,
+          'faq.a11': `<p>这种情况大多与应用安装位置、后台项目授权、其他代理软件冲突，或 macOS 登录项状态卡住有关。</p><ul class="list-disc pl-5 mt-2 space-y-1"><li>确认你运行的是打包后的应用，并且 <code>ClashBar.app</code> 已放在 <code>/Applications</code>。</li><li>到“系统设置 → 通用 → 登录项”中允许 <code>ClashBar</code> 后台项目；如果已允许但仍异常，先手动关闭再重新打开一次。</li><li>退出其他 <code>mihomo</code> / Clash 系客户端，避免系统代理被别的软件接管。</li><li>回到应用里执行一次 <code>Restart</code> Core，然后再重新开启系统代理。</li><li>如果仍然失败，打开 <code>Logs</code> 查看关键错误信息再排查。</li></ul>`,
         },
         en: {
-          'faq.a1': `<p>ClashBar is a native macOS menu bar proxy client built with <code>SwiftUI + AppKit</code> and powered by <code>mihomo</code>. It is not trying to be another bloated shell. The point is to keep config management, node switching, rule refresh, connection debugging, and system proxy control inside the menu bar.</p>
-            <ul>
-              <li><strong>Best for:</strong> macOS users who want a native menu bar experience, small app size, long-running stability, and observable troubleshooting signals.</li>
-              <li><strong>Project status:</strong> this is a personal project iterated with Codex, and the requirements, implementation, and docs are all moving fast.</li>
-            </ul>
-            <p>If you care about internal boundaries, read <a href="https://github.com/Sitoi/ClashBar/blob/main/ARCHITECTURE.md">ARCHITECTURE.md</a>.</p>`,
-          'faq.a2': `<p>The goal is simple: keep the core proxy capabilities while driving down size, complexity, and runtime cost. Short-term feature stacking is not allowed to win against daily stability.</p>
-            <ul>
-              <li><strong>Size targets:</strong> keep the app under 20 MB when bundling the <code>mihomo</code> core, and under 10 MB when distributed without the core.</li>
-              <li><strong>Current comparison:</strong><code>ClashBar.app (No Core)</code> is about 7.6 MB, <code>ClashBar.app</code> about 18.4 MB, <code>ClashMac.app</code> about 75.2 MB, <code>Clash Verge.app</code> about 128.4 MB, and <code>Clash Party.app</code> about 496.7 MB.</li>
-            </ul>
-            <p>Those figures come from Finder in the same macOS environment. The point is not vanity sizing. It is the design direction.</p>`,
-          'faq.a4': `<ul>
-              <li><strong>Keep one active owner:</strong> only one <code>mihomo</code> or Clash-family client should own the system proxy at a time.</li>
-              <li><strong>Install it correctly:</strong> prefer the release <code>.app</code> / <code>.dmg</code>, and move <code>ClashBar.app</code> into <code>/Applications</code>.</li>
-              <li><strong>Authorize login items:</strong> when macOS asks about background items or login items, allow <code>ClashBar</code> in System Settings &gt; General &gt; Login Items.</li>
-              <li><strong>Do not blame the code first:</strong> if the system proxy toggle suddenly stops responding, toggle the <code>ClashBar</code> background item off and on once.</li>
-              <li><strong>Restart after changes:</strong> when you change configs or the core, a single <code>Restart</code> is the first cleanup step.</li>
-            </ul>`,
-          'faq.a5': `<ol class="quick-steps">
-              <li>Open the ClashBar menu bar panel.</li>
-              <li>Choose a config in <code>Proxy</code>, or import a local or remote profile.</li>
-              <li>Run <code>Start</code> to launch the core.</li>
-              <li>Select the traffic mode: <code>Rule</code>, <code>Global</code>, or <code>Direct</code>.</li>
-              <li>Switch nodes in the Proxy Group and run a latency test.</li>
-              <li>Only enable system proxy after connectivity looks correct.</li>
-            </ol>`,
-          'faq.a7': `<ul>
-              <li><strong>Daily work:</strong> switch profiles and nodes quickly as the network changes, while keeping stability first.</li>
-              <li><strong>Troubleshooting:</strong> combine <code>Connections</code> and <code>Logs</code> to inspect failures, rule matches, and real routing behavior.</li>
-              <li><strong>Subscription maintenance:</strong> batch-update remote configs, reload once, then recheck latency.</li>
-              <li><strong>Security-first use:</strong> sensitive data goes into Keychain and logs are sanitized.</li>
-            </ul>`,
-          'faq.a8': `<p>The runtime root lives at <code>~/Library/Application Support/clashbar</code>.</p>
-            <ul>
-              <li><strong><code>config/</code>:</strong> user config files and imported subscription results.</li>
-              <li><strong><code>logs/</code>:</strong> runtime logs and troubleshooting output.</li>
-              <li><strong><code>state/</code>:</strong> runtime state and session data. Let the app manage it.</li>
-              <li><strong><code>core/</code>:</strong> the runtime core binary.</li>
-            </ul>`,
-          'faq.a9': `<p>The runtime core path is <code>~/Library/Application Support/clashbar/core/mihomo</code>.</p>
-            <ul>
-              <li>Run <code>Stop</code> in ClashBar and make sure the current core process is gone.</li>
-              <li>Prepare the replacement executable and keep the filename as <code>mihomo</code>.</li>
-              <li>Start again with <code>Start</code> or <code>Restart</code>.</li>
-            </ul>`,
-          'faq.a10': `<p>This is usually just Gatekeeper doing what Gatekeeper does for unnotarized apps. It is not unique to ClashBar.</p>
-            <ul>
-              <li>Move the app into <code>/Applications/ClashBar.app</code>.</li>
-              <li>Open System Settings &gt; Privacy &amp; Security and choose Open Anyway.</li>
-              <li>If it is still blocked, remove the quarantine flag with <code>sudo xattr -r -d com.apple.quarantine /Applications/ClashBar.app</code>.</li>
-            </ul>`,
-          'faq.a13': `<ul>
-              <li>First make sure you are not in <code>Direct</code> mode and that no other app has overridden the system proxy.</li>
-              <li>Inspect matched rules and policy results in <code>Rules</code>.</li>
-              <li>Inspect the actual target session in <code>Connections</code>.</li>
-              <li>Filter the relevant keywords in <code>Logs</code> to cross-check the final routing decision.</li>
-            </ul>
-            <p>Put rules, connections, and logs together and the problem usually stops hiding.</p>`,
+          'faq.a4': `<ul class="list-disc pl-5 space-y-1"><li>Only one <code>mihomo</code> or Clash-family client should own the system proxy at a time, otherwise ports, proxy state, or helper state can collide.</li><li>Prefer the packaged release build and move <code>ClashBar.app</code> into <code>/Applications</code> before launching it.</li><li>When macOS asks about background items or login items, allow <code>ClashBar</code> in System Settings &gt; General &gt; Login Items.</li><li>If the system proxy toggle stops responding, do not blame the profile first; the login item state is often stuck, so turn the <code>ClashBar</code> background item off and on once.</li><li>After replacing configs or the core, run one <code>Restart</code> first to clear most state mismatch issues.</li></ul>`,
+          'faq.a8': `<p>The runtime root lives at <code>~/Library/Application Support/clashbar</code>.</p><ul class="list-disc pl-5 mt-2 space-y-1"><li><strong><code>config/</code>:</strong> user config files and imported subscription results.</li><li><strong><code>logs/</code>:</strong> runtime logs and troubleshooting output; clean them up when you are done debugging.</li><li><strong><code>state/</code>:</strong> runtime state and session data; let the app manage it.</li><li><strong><code>core/</code>:</strong> the bundled <code>mihomo</code> runtime binary.</li></ul>`,
+          'faq.a9': `<p>The runtime core path is <code>~/Library/Application Support/clashbar/core/mihomo</code>.</p><ul class="list-disc pl-5 mt-2 space-y-1"><li>Run <code>Stop</code> first and make sure the current core process is gone.</li><li>Prepare the replacement executable and keep the filename as <code>mihomo</code>.</li><li>Go back to ClashBar and use <code>Start</code> or <code>Restart</code> to load it.</li></ul>`,
+          'faq.a10': `<p>This is usually just Gatekeeper doing its default job for an unnotarized app. It is not unique to ClashBar.</p><ul class="list-disc pl-5 mt-2 space-y-1"><li>Move the app into <code>/Applications/ClashBar.app</code>.</li><li>Open System Settings &gt; Privacy &amp; Security and choose Open Anyway.</li><li>If it is still blocked, remove the quarantine flag with <code>sudo xattr -r -d com.apple.quarantine /Applications/ClashBar.app</code>.</li></ul>`,
+          'faq.a11': `<p>This usually comes down to app location, login-item authorization, conflicts with another proxy client, or a stuck macOS background item state.</p><ul class="list-disc pl-5 mt-2 space-y-1"><li>Make sure you are running the packaged app and that <code>ClashBar.app</code> is in <code>/Applications</code>.</li><li>Allow the <code>ClashBar</code> background item in System Settings &gt; General &gt; Login Items; if it is already allowed but still fails, turn it off and on once.</li><li>Quit other <code>mihomo</code> or Clash-family clients so they do not take over the system proxy.</li><li>Run one <code>Restart</code> in ClashBar, then try enabling system proxy again.</li><li>If it still fails, inspect <code>Logs</code> for the key error before troubleshooting further.</li></ul>`,
         },
       }
 
       const COPY_ATTRS = {
         zh: {
           'brand.logoAlt': 'ClashBar 标志',
-          'hero.proofListLabel': 'ClashBar 首屏说明',
-          'hero.imageAlt': 'ClashBar 深色界面应用截图',
-          'proof.sectionLabel': 'ClashBar 能力证明',
-          'features.sectionLabel': 'ClashBar 功能展示',
-          'quick.sectionLabel': 'ClashBar 快速开始',
-          'faq.sectionLabel': 'ClashBar 常见问题',
-          'download.sectionLabel': 'ClashBar 最终下载引导',
+          'hero.imageAlt': 'ClashBar 截图',
         },
         en: {
-          'brand.logoAlt': 'ClashBar logo',
-          'hero.proofListLabel': 'ClashBar hero proof points',
-          'hero.imageAlt': 'ClashBar app screenshot in dark theme',
-          'proof.sectionLabel': 'ClashBar proof strip',
-          'features.sectionLabel': 'ClashBar feature showcase',
-          'quick.sectionLabel': 'ClashBar quick start',
-          'faq.sectionLabel': 'ClashBar frequently asked questions',
-          'download.sectionLabel': 'ClashBar final call to action',
+          'brand.logoAlt': 'ClashBar Logo',
+          'hero.imageAlt': 'ClashBar Screenshot',
         },
       }
 
@@ -2395,139 +2115,57 @@
         '[data-copy-alt], [data-copy-aria-label]',
       )
       const revealNodes = Array.from(document.querySelectorAll('[data-reveal]'))
-      const heroRevealNodes = Array.from(
-        document.querySelectorAll('#hero [data-reveal]'),
-      )
-      const nonHeroRevealNodes = revealNodes.filter(
-        (node) => !node.closest('#hero'),
-      )
 
       function showRevealNodes(nodes) {
-        nodes.forEach((node) => {
-          node.classList.add('is-visible')
-        })
+        nodes.forEach((node) => node.classList.add('is-visible'))
       }
 
-      function stageHeroReveal() {
-        heroRevealNodes.forEach((node, index) => {
-          window.setTimeout(
-            () => {
-              node.classList.add('is-visible')
-            },
-            120 + index * 110,
-          )
-        })
-      }
-
-      function startScrollReveals() {
-        if (!nonHeroRevealNodes.length) {
-          return
-        }
-
-        if (typeof IntersectionObserver !== 'function') {
-          showRevealNodes(nonHeroRevealNodes)
-          return
-        }
+      function initReveals() {
+        if (prefersReducedMotion) return showRevealNodes(revealNodes)
+        document.documentElement.classList.add('reveal-enabled')
 
         const observer = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {
-              if (!entry.isIntersecting) {
-                return
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible')
+                observer.unobserve(entry.target)
               }
-
-              entry.target.classList.add('is-visible')
-              observer.unobserve(entry.target)
             })
           },
-          {
-            threshold: 0.18,
-            rootMargin: '0px 0px -8% 0px',
-          },
+          { threshold: 0.1, rootMargin: '0px 0px -50px 0px' },
         )
 
-        nonHeroRevealNodes.forEach((node) => {
+        revealNodes.forEach((node, index) => {
+          if (index < 4) node.style.transitionDelay = `${index * 80}ms`
           observer.observe(node)
         })
       }
 
-      function initReveals() {
-        if (prefersReducedMotion) {
-          showRevealNodes(revealNodes)
-          return
-        }
-
-        document.documentElement.classList.add('reveal-enabled')
-        stageHeroReveal()
-        startScrollReveals()
-      }
-
       function applyLanguage(language) {
-        document.documentElement.lang = language === 'en' ? 'en' : 'zh-Hans'
-
+        document.documentElement.lang = language
         copyTargets.forEach((node) => {
-          const key = node.dataset.copy
-          const nextValue = COPY[language] && COPY[language][key]
-
-          if (typeof nextValue === 'string') {
-            node.textContent = nextValue
-          }
+          const val = COPY[language]?.[node.dataset.copy]
+          if (val) node.textContent = val
         })
-
         htmlCopyTargets.forEach((node) => {
-          const key = node.dataset.copyHtml
-          const nextValue = COPY_HTML[language] && COPY_HTML[language][key]
-
-          if (typeof nextValue === 'string') {
-            node.innerHTML = nextValue
-          }
+          const val = COPY_HTML[language]?.[node.dataset.copyHtml]
+          if (val) node.innerHTML = val
         })
-
         attrTargets.forEach((node) => {
-          const altKey = node.dataset.copyAlt
-          const nextAlt =
-            altKey && COPY_ATTRS[language] && COPY_ATTRS[language][altKey]
-
-          if (typeof nextAlt === 'string') {
-            node.setAttribute('alt', nextAlt)
-          }
-
-          const ariaLabelKey = node.dataset.copyAriaLabel
-          const nextAriaLabel =
-            ariaLabelKey &&
-            COPY_ATTRS[language] &&
-            COPY_ATTRS[language][ariaLabelKey]
-
-          if (typeof nextAriaLabel === 'string') {
-            node.setAttribute('aria-label', nextAriaLabel)
-          }
+          const alt = COPY_ATTRS[language]?.[node.dataset.copyAlt]
+          if (alt) node.setAttribute('alt', alt)
         })
-
-        if (languageToggle) {
-          languageToggle.setAttribute(
-            'aria-pressed',
-            language === 'en' ? 'true' : 'false',
-          )
-        }
       }
 
       if (languageToggle) {
         languageToggle.addEventListener('click', () => {
-          const nextLanguage =
-            document.documentElement.lang === 'en' ? 'zh' : 'en'
-          applyLanguage(nextLanguage)
+          applyLanguage(document.documentElement.lang === 'en' ? 'zh' : 'en')
         })
       }
 
       applyLanguage('zh')
-
-      if (document.readyState !== 'loading') {
-        initReveals()
-      } else {
-        document.addEventListener('DOMContentLoaded', initReveals, {
-          once: true,
-        })
-      }
+      document.addEventListener('DOMContentLoaded', initReveals, { once: true })
     </script>
   </body>
 </html>
