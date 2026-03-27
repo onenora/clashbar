@@ -57,19 +57,20 @@ ClashBar 是一个「纯 AI vibe coding」驱动的自用项目。
 
 ClashBar 的设计目标始终围绕两个关键词：**轻量** 与 **稳定**。
 
-- 🪶 轻量化优先：在打包 `mihomo` Core 的前提下，应用体积目标控制在 **20 MB 以内**。
-- 📦 可裁剪交付：移除 Core 后，应用体积目标控制在 **10 MB 以内**，便于快速分发与集成。
+- 🪶 轻量化优先：在打包 `mihomo` Core 的前提下，应用体积目标控制在 **15 MB 以内**。
+- 📦 可裁剪交付：移除 Core 后，应用体积目标控制在 **3 MB 以内**，便于快速分发与集成。
 - 🛡️ 稳定性优先：优先保证日常可用性与长期运行稳定，避免为短期功能堆叠牺牲可靠性。
 
 ## 📏 App 体积对比（macOS）
 
 | 客户端                 | 应用体积 | 相对 ClashBar |
 | ---------------------- | -------: | ------------: |
-| ClashBar.app (No Core) |   7.6 MB |          1.0x |
-| ClashBar.app           |  18.4 MB |          2.6x |
-| ClashMac.app           |  75.2 MB |         10.9x |
-| Clash Verge.app        | 128.4 MB |         18.6x |
-| Clash Party.app        | 496.7 MB |         72.0x |
+| ClashBar.app (No Core) |   2.7 MB |          1.0x |
+| ClashBar.app           |  14.2 MB |          5.2x |
+| ClashMac.app           |  75.2 MB |         27.8x |
+| Clash Verge.app        | 128.4 MB |         47.5x |
+| Clash Party.app        | 496.7 MB |        183.9x |
+| Sparkle.app            | 519.8 MB |        192.5x |
 
 > [!NOTE]
 > 对比数据来自同一台 macOS 环境下 Finder 显示值（截图基准）。不同版本与构建方式会影响最终体积，以上用于说明轻量化设计方向。
